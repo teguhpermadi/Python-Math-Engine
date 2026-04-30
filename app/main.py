@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from app.config import settings
 from app.routers import arithmetic
+from app.exceptions import MathEngineError
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -8,6 +10,17 @@ app = FastAPI(
     version="2.0.0",
     debug=settings.DEBUG
 )
+
+@app.exception_handler(MathEngineError)
+async def math_engine_exception_handler(request: Request, exc: MathEngineError):
+    return JSONResponse(
+        status_code=400,
+        content={
+            "status": "error",
+            "error_code": exc.error_code,
+            "message": exc.message
+        },
+    )
 
 app.include_router(arithmetic.router, prefix="/api/v1")
 

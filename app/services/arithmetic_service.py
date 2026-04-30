@@ -20,6 +20,8 @@ from ..core.arithmetic.mixed_operations import generate_mixed_operations
 
 from .blueprint import build_arithmetic_blueprint, build_variables
 from .distractor import generate_distractors
+from .ai_storyteller import ai_storyteller
+from ..exceptions import InvalidLevelError, InvalidNumberTypeForLevelError
 
 async def generate_arithmetic_question(request: ArithmeticRequest) -> ArithmeticResponse:
     """
@@ -36,7 +38,18 @@ async def generate_arithmetic_question(request: ArithmeticRequest) -> Arithmetic
     rng = seed_manager.rng
     
     # 2. Get Config
-    level_config = get_level_config(request.level)
+    try:
+        level_config = get_level_config(request.level)
+    except ValueError as e:
+        raise InvalidLevelError(str(e))
+    
+    # 3. Validate NumberType for Level
+    if request.number_type not in level_config.allowed_number_types:
+        # Special case for some operations that might be allowed regardless
+        if request.operation not in ["gcd", "lcm", "factorization"]:
+             raise InvalidNumberTypeForLevelError(
+                 f"Tipe {request.number_type} tidak diizinkan di Level {request.level}"
+             )
     
     # 3. Call Core Generator
     gen_map = {
@@ -80,7 +93,18 @@ async def generate_arithmetic_question(request: ArithmeticRequest) -> Arithmetic
     # Shuffle choices deterministically using rng
     rng.shuffle(choices)
     
-    # 6. Construct Response
+    # 6. Generate Story (Async)
+    story = None
+    if request.with_story:
+        story = await ai_storyteller.generate_story(
+            raw_data["expression"],
+            raw_data["result"],
+            request.operation,
+            request.theme,
+            rng
+        )
+
+    # 7. Construct Response
     return ArithmeticResponse(
         meta=MetaInfo(
             seed=request.seed,
@@ -88,11 +112,14 @@ async def generate_arithmetic_question(request: ArithmeticRequest) -> Arithmetic
             operation=request.operation,
             number_type=request.number_type.value
         ),
-        context=ContextInfo(theme=request.theme),
+        context=ContextInfo(
+            story=story,
+            theme=request.theme
+        ),
         data=ArithmeticData(
             variables=variables,
             expression=raw_data["expression"],
-            expression_latex=raw_data.get("expression_latex", ""), # Optional
+            expression_latex=raw_data.get("expression_latex", ""),
             blueprint=blueprint,
             answer_choices=choices,
             correct_answer=correct_answer,

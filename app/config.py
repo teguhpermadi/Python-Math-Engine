@@ -3,11 +3,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     APP_NAME: str = "Python Math Engine"
     DEBUG: bool = True
-    PORT: int = 8000
-    HOST: str = "0.0.0.0"
-    
     LM_STUDIO_URL: str = "http://localhost:1234/v1"
+    LM_TIMEOUT_SECONDS: float = 60.0
+    ENABLE_AI_STORY: bool = True
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()
