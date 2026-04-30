@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+sympy
+numpy
+python-dotenv
+httpx
