@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from app.config import settings
+from app.routers import arithmetic
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -7,6 +8,8 @@ app = FastAPI(
     version="2.0.0",
     debug=settings.DEBUG
 )
+
+app.include_router(arithmetic.router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
