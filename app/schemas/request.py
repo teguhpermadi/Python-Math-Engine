@@ -16,8 +16,9 @@ class ArithmeticRequest(BaseModel):
     number_type: NumberType = Field(..., description="Tipe bilangan yang digunakan")
 
     # ── Parameter Opsional ───────────────────────────────────────────────────
-    operand_count: int = Field(default=2, ge=2, le=5,
-                               description="Jumlah operand (untuk penjumlahan/perkalian)")
+    operand_count: int = Field(default=2, ge=2, le=6,
+                               description="Jumlah operand (untuk penjumlahan/perkalian/mixed)")
+    allowed_operations: Optional[list[str]] = Field(default=None, description="Daftar operasi yang diizinkan untuk soal campuran")
     with_story: bool = Field(default=False, description="Generate soal cerita via LM Studio (Not implemented yet)")
     with_distractors: bool = Field(default=True, description="Sertakan pilihan jawaban salah")
     distractor_count: int = Field(default=3, ge=2, le=4)

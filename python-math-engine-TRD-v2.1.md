@@ -1031,15 +1031,18 @@ def generate_mixed_operations(
     level_config: LevelConfig,
     number_type: NumberType,
     operation_count: int | None = None,
-    with_parentheses: bool | None = None
+    with_parentheses: bool | None = None,
+    allowed_operations: list[OperationName] | None = None
 ) -> dict:
     """
     Generate multi-step mixed operations problem.
 
     Args:
         operation_count: Number of operations. If None, chosen from
-                         range [2, level_config.max_operations]
+                         range [2, min(5, level_config.max_operations)]
         with_parentheses: If None, follows level_config.allow_parentheses.
+        allowed_operations: List of operations allowed in this problem.
+                            If None, follows level default.
 
     Returns:
         {
@@ -1062,17 +1065,19 @@ def generate_mixed_operations(
         }
 
     Generation Strategy:
-        1. Randomly pick operation sequence valid for this level
-        2. Generate intermediate results first to ensure clean final result
-        3. Backward-compute all operands
-        4. Validate no division by zero or negative radicands
+        1. Select operation sequence from `allowed_operations` or level default.
+        2. Generate up to 5 operations as requested by `operation_count`.
+        3. Maintain linear (left-to-right) evaluation for step-by-step clarity.
+        4. Automatically add parentheses if a later operation has higher priority
+           than the previous one, forcing the linear flow.
+        5. Backward-compute intermediate operands to ensure clean results.
     """
     ...
 
 def _build_expression_tree(steps: list[MixedStep], with_parentheses: bool) -> str:
     """
-    Build expression string from step list, with or without parentheses.
-    Respects BODMAS/PEMDAS for correct parenthesis placement.
+    Build expression string from step list.
+    Ensures correct parenthesis placement to maintain the generated step order.
     """
     ...
 ```

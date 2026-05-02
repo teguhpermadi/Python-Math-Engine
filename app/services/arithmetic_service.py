@@ -65,7 +65,13 @@ async def generate_arithmetic_question(request: ArithmeticRequest) -> Arithmetic
         "factorization": lambda: generate_factorization_problem(rng, level_config),
         "comparison": lambda: generate_comparison(rng, level_config, request.number_type),
         "ordering": lambda: generate_ordering(rng, level_config, request.number_type),
-        "mixed": lambda: generate_mixed_operations(rng, level_config, request.number_type)
+        "mixed": lambda: generate_mixed_operations(
+            rng, 
+            level_config, 
+            request.number_type, 
+            operation_count=request.operand_count - 1,
+            allowed_operations=request.allowed_operations
+        )
     }
     
     if request.operation not in gen_map:
