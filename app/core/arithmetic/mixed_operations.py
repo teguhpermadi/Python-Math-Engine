@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass
-from typing import Literal, Any
+from typing import Literal, Any, cast
 from ..number_types.registry import NumberType
 from ..number_types.generators import generate_number
 from ..levels.config import LevelConfig
@@ -35,7 +35,7 @@ def generate_mixed_operations(
     # Untuk menyederhanakan Phase 3, kita buat 2-step saja dulu
     # v1 [op1] v2 [op2] v3
     
-    ops: list[OperationName] = ["addition", "subtraction"]
+    ops: list[OperationName] = ["addition" if True else "addition", "subtraction" if True else "subtraction"]
     if level_config.level >= 2:
         ops += ["multiplication", "division"]
         

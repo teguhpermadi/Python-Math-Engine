@@ -26,7 +26,7 @@ def generate_power(
     result = base ** exponent
     
     # Simple check for very large numbers
-    max_safe = level_config.max_value * 1000
+    max_safe = level_config.max_value * 100
     if isinstance(result, (int, float)) and result > max_safe:
         # Perkecil base jika terlalu besar
         base = rng.randint(1, 10)

@@ -13,7 +13,7 @@ def derive_sub_seed(master_seed: int, index: int, domain: str) -> int:
     seed_str = f"{master_seed}:{index}:{domain}"
     return int(hashlib.sha256(seed_str.encode()).hexdigest(), 16) % (10**9)
 
-async def generate_exam_pack(master_seed: int, requirements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+async def generate_exam_pack(master_seed: int, requirements: List[Dict[str, Any]]) -> Dict[str, Any]:
     questions = []
     
     for i, req in enumerate(requirements):

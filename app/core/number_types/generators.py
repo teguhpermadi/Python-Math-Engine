@@ -29,14 +29,16 @@ def generate_number(
             primes = list(primerange(2, level_config.max_value + 1))
             if not primes:
                 return 2 # Fallback
-            return rng.choice(primes)
-
+            result: int = rng.choice(primes)
+            return result
+        
         case NumberType.COMPOSITE:
             composites = [n for n in range(4, level_config.max_value + 1)
                           if not isprime(n)]
             if not composites:
                 return 4 # Fallback
-            return rng.choice(composites)
+            result2: int = rng.choice(composites)
+            return result2
 
         case NumberType.DECIMAL:
             val = round(rng.uniform(level_config.min_decimal, level_config.max_decimal),
