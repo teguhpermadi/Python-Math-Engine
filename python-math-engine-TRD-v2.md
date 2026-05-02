@@ -208,7 +208,9 @@ python-math-engine/
 │   │   │   ├── shapes_2d.py
 │   │   │   ├── shapes_3d.py
 │   │   │   ├── mesh_generator.py
-│   │   │   └── composite.py
+│   │   │   ├── composite.py
+│   │   │   ├── angles.py              # ★ BARU: Angle generation
+│   │   │   └── lines.py                # ★ BARU: Line helpers for angles
 │   │   │
 │   │   ├── measurement/
 │   │   │   ├── __init__.py
@@ -241,6 +243,8 @@ python-math-engine/
 │   │   ├── measurement_service.py
 │   │   ├── algebra_service.py
 │   │   ├── statistics_service.py
+│   │   ├── angle_service.py            # ★ BARU: Angle question service
+│   │   ├── exam_service.py              # ★ BARU: Exam pack generation
 │   │   └── probability_service.py
 │   │
 │   ├── schemas/                         # LAYER 3: Pydantic Models
@@ -255,6 +259,8 @@ python-math-engine/
 │       ├── measurement.py
 │       ├── algebra.py
 │       ├── statistics.py
+│       ├── angles.py                  # ★ BARU: Angles endpoints
+│       ├── exam.py                    # ★ BARU: Exam pack endpoint
 │       └── probability.py
 │
 ├── tests/
@@ -1129,6 +1135,126 @@ def generate_ordering(
     """
     ...
 ```
+
+---
+
+### 8.11 `angles.py` — Angle Generation (Geometry)
+
+#### 8.11.1 Core Functions (`app/core/geometry/angles.py`)
+
+```python
+def generate_complementary_angle(rng: random.Random):
+    """Sudut Penyiku (x + y = 90°)"""
+    angle_a = rng.randint(10, 80)
+    angle_b = 90 - angle_a
+    return {
+        "type": "complementary",
+        "angle_a": angle_a,
+        "angle_b": angle_b,
+        "sum": 90
+    }
+
+def generate_supplementary_angle(rng: random.Random):
+    """Sudut Pelurus (x + y = 180°)"""
+    angle_a = rng.randint(20, 160)
+    angle_b = 180 - angle_a
+    return {
+        "type": "supplementary",
+        "angle_a": angle_a,
+        "angle_b": angle_b,
+        "sum": 180
+    }
+
+def generate_parallel_line_angles(rng: random.Random):
+    """Hubungan sudut pada dua garis sejajar yang dipotong transversal"""
+    base_angle = rng.randint(30, 150)
+    other_angle = 180 - base_angle
+    
+    relationships = ["sehadap", "dalam_berseberangan", "luar_berseberangan", "dalam_sepihak"]
+    rel = rng.choice(relationships)
+    
+    return {
+        "type": "parallel_lines",
+        "relationship": rel,
+        "angle_1": base_angle,
+        "angle_2": base_angle if rel != "dalam_sepihak" else other_angle,
+        "is_equal": rel != "dalam_sepihak"
+    }
+```
+
+#### 8.11.2 Line Drawing Helpers (`app/core/geometry/lines.py`)
+
+```python
+def get_line_coords(x1, y1, angle_deg, length):
+    """Mendapatkan koordinat akhir garis berdasarkan sudut dan panjang."""
+    angle_rad = math.radians(angle_deg)
+    x2 = x1 + length * math.cos(angle_rad)
+    y2 = y1 + length * math.sin(angle_rad)
+    return [round(x1, 2), round(y1, 2)], [round(x2, 2), round(y2, 2)]
+
+def generate_complementary_drawing(angle_a_deg):
+    """Visual data for complementary angles (L-shape)"""
+    return {
+        "points": {"O": [0,0], "A": [50,0], "B": [0,50], "C": [...]},
+        "lines": [["O","A"], ["O","B"], ["O","C"]],
+        "angles": [
+            {"label": "x", "points": ["A","O","C"], "value": angle_a_deg},
+            {"label": "y", "points": ["C","O","B"], "value": 90 - angle_a_deg}
+        ]
+    }
+
+def generate_supplementary_drawing(angle_a_deg):
+    """Visual data for supplementary angles (Straight line)"""
+    # Similar structure for 180° angles
+    ...
+```
+
+---
+
+### 8.12 `exam.py` — Exam Pack Generation (Service)
+
+#### 8.12.1 Seed Derivation for Exam (`app/services/exam_service.py`)
+
+```python
+def derive_sub_seed(master_seed: int, index: int, domain: str) -> int:
+    """Menghasilkan sub-seed unik namun deterministik."""
+    seed_str = f"{master_seed}:{index}:{domain}"
+    return int(hashlib.sha256(seed_str.encode()).hexdigest(), 16) % (10**9)
+```
+
+#### 8.12.2 Exam Pack Generator
+
+```python
+async def generate_exam_pack(master_seed: int, requirements: List[Dict[str, Any]]) -> dict:
+    """
+    Generate exam pack dari multiple domains.
+    
+    Request format:
+    {
+        "master_seed": 2024,
+        "requirements": [
+            {"domain": "arithmetic", "operation": "addition", "level": 1, "number_type": "natural"},
+            {"domain": "angles", "type": "complementary", "level": 3},
+            {"domain": "geometry", "shape": "cube", "level": 2}
+        ]
+    }
+    
+    Response format:
+    {
+        "master_seed": 2024,
+        "total_questions": 3,
+        "questions": [
+            {"id": 1, "domain": "arithmetic", "content": {ArithmeticResponse}},
+            {"id": 2, "domain": "angles", "content": {AngleResponse}},
+            ...
+        ]
+    }
+    ```
+    
+    **Supported Domains:** `arithmetic`, `geometry`, `measurement`, `algebra`, `statistics`, `angles`
+    
+    **Sub-Seed Logic:** Setiap soal dalam pack mendapatkan sub-seed yang diturunkan dari master_seed + index + domain, menjamin reproducibility pack soal.
+    ```
 
 ---
 
