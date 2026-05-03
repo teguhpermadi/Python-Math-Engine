@@ -27,15 +27,15 @@ def generate_division(
     # 3. Hitung dividend
     dividend = quotient * divisor
 
-    dividend_str = format_result(dividend)
-    divisor_str = format_result(divisor)
+    dividend_str = format_result(dividend, number_type)
+    divisor_str = format_result(divisor, number_type)
     expression = f"{dividend_str} ÷ {divisor_str}"
     
     return {
         "operands": [dividend_str, divisor_str],
         "operation": "division",
         "expression": expression,
-        "result": format_result(quotient),
+        "result": format_result(quotient, number_type),
         "result_type": get_result_type(quotient),
-        "steps": [f"{expression} = {format_result(quotient)}"]
+        "steps": [f"{expression} = {format_result(quotient, number_type)}"]
     }

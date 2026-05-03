@@ -27,15 +27,15 @@ def generate_subtraction(
 
     result = op1 - op2
     
-    op1_str = format_result(op1)
-    op2_str = format_result(op2)
+    op1_str = format_result(op1, number_type)
+    op2_str = format_result(op2, number_type)
     expression = f"{op1_str} - {op2_str}"
     
     return {
         "operands": [op1_str, op2_str],
         "operation": "subtraction",
         "expression": expression,
-        "result": format_result(result),
+        "result": format_result(result, number_type),
         "result_type": get_result_type(result),
-        "steps": [f"{expression} = {format_result(result)}"]
+        "steps": [f"{expression} = {format_result(result, number_type)}"]
     }

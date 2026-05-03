@@ -26,14 +26,14 @@ def generate_multiplication(
     for o in operands:
         result *= o
 
-    operand_strs = [format_result(o) for o in operands]
+    operand_strs = [format_result(o, number_type) for o in operands]
     expression = " × ".join(operand_strs) # Menggunakan simbol kali yang cantik
     
     return {
         "operands": operand_strs,
         "operation": "multiplication",
         "expression": expression,
-        "result": format_result(result),
+        "result": format_result(result, number_type),
         "result_type": get_result_type(result),
-        "steps": [f"{expression} = {format_result(result)}"]
+        "steps": [f"{expression} = {format_result(result, number_type)}"]
     }

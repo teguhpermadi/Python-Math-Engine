@@ -25,20 +25,20 @@ def generate_addition(
     result = sum(operands)
     
     # Format operands for expression
-    operand_strs = [format_result(o) for o in operands]
+    operand_strs = [format_result(o, number_type) for o in operands]
     expression = " + ".join(operand_strs)
     
     # Generate steps (simple for single operation)
     if operand_count == 2:
-        steps = [f"{operand_strs[0]} + {operand_strs[1]} = {format_result(result)}"]
+        steps = [f"{operand_strs[0]} + {operand_strs[1]} = {format_result(result, number_type)}"]
     else:
-        steps = [f"Jumlahkan semua angka: {expression} = {format_result(result)}"]
+        steps = [f"Jumlahkan semua angka: {expression} = {format_result(result, number_type)}"]
 
     return {
         "operands": operand_strs,
         "operation": "addition",
         "expression": expression,
-        "result": format_result(result),
+        "result": format_result(result, number_type),
         "result_type": get_result_type(result),
         "steps": steps
     }

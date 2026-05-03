@@ -95,22 +95,22 @@ def generate_mixed_operations(
     for i, leaf in enumerate(leaves):
         var_id = f"v{i+1}"
         leaf.var_id = var_id
-        variables.append({"id": var_id, "value": format_result(leaf.value)})
+        variables.append({"id": var_id, "value": format_result(leaf.value, number_type)})
 
     # Generate Expression string
-    expression = _build_expression_string(root)
-    expression_latex = _build_latex_string(root)
+    expression = _build_expression_string(root, number_type)
+    expression_latex = _build_latex_string(root, number_type)
     
     # Generate Steps (Post-order traversal)
     steps = []
-    _generate_steps(root, steps)
+    _generate_steps(root, steps, number_type)
 
     return {
         "variables": variables,
         "operation": "mixed",
         "expression": expression,
         "expression_latex": expression_latex,
-        "result": format_result(root.value),
+        "result": format_result(root.value, number_type),
         "result_type": get_result_type(root.value),
         "steps": steps
     }
@@ -188,12 +188,12 @@ def _get_leaves(node, leaves):
         _get_leaves(node.left, leaves)
         _get_leaves(node.right, leaves)
 
-def _build_expression_string(node):
+def _build_expression_string(node, number_type=None):
     if node.is_leaf:
-        return format_result(node.value)
+        return format_result(node.value, number_type)
     
-    left_str = _build_expression_string(node.left)
-    right_str = _build_expression_string(node.right)
+    left_str = _build_expression_string(node.left, number_type)
+    right_str = _build_expression_string(node.right, number_type)
     
     # Tambahkan kurung jika prioritas anak lebih rendah
     if not node.left.is_leaf and priority(node.left.op) < priority(node.op):
@@ -210,17 +210,26 @@ def _build_expression_string(node):
 
     return f"{left_str} {get_sym(node.op)} {right_str}"
 
-def _build_latex_string(node):
+def _build_latex_string(node, number_type=None):
     if node.is_leaf:
         val = node.value
         if isinstance(val, Fraction):
             if val.denominator == 1:
                 return str(val.numerator)
+            if number_type == NumberType.MIXED_FRACTION:
+                whole = abs(val.numerator) // val.denominator
+                remain = abs(val.numerator) % val.denominator
+                sign = "-" if val.numerator < 0 else ""
+                if whole == 0:
+                    return f"\\frac{{{remain}}}{{{val.denominator}}}"
+                if remain == 0:
+                    return f"{sign}{whole}"
+                return f"{sign}{whole} \\frac{{{remain}}}{{{val.denominator}}}"
             return f"\\frac{{{val.numerator}}}{{{val.denominator}}}"
-        return format_result(val)
+        return format_result(val, number_type)
     
-    left_str = _build_latex_string(node.left)
-    right_str = _build_latex_string(node.right)
+    left_str = _build_latex_string(node.left, number_type)
+    right_str = _build_latex_string(node.right, number_type)
     
     if node.op == "power":
         return f"{{{left_str}}}^{{{right_str}}}"
@@ -257,18 +266,21 @@ def _build_latex_string(node):
     op_sym = latex_ops.get(node.op, get_sym(node.op))
     return f"{left_str} {op_sym} {right_str}"
 
-def _generate_steps(node, steps):
+def _generate_steps(node, steps, number_type=None):
     if node.is_leaf:
         return node.var_id # Mengembalikan ID variabel atau ID step
     
-    left_ref = _generate_steps(node.left, steps)
-    right_ref = _generate_steps(node.right, steps)
+    left_ref = _generate_steps(node.left, steps, number_type)
+    right_ref = _generate_steps(node.right, steps, number_type)
     
     step_id = f"s{len(steps) + 1}"
     
     # Untuk nilai di expression step, gunakan hasil evaluasi real-nya
-    left_val_s = format_result(node.left.value)
-    right_val_s = format_result(node.right.value)
+    # Di sini kita mungkin tetap ingin improper agar step-nya mudah dihitung, 
+    # tapi user minta mixed fraction di soal.
+    # Kita gunakan format_result dengan number_type agar konsisten.
+    left_val_s = format_result(node.left.value, number_type)
+    right_val_s = format_result(node.right.value, number_type)
     
     steps.append({
         "step_id": step_id,

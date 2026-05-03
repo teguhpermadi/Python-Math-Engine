@@ -49,15 +49,16 @@ def test_full_response_latex():
     from app.schemas.request import ArithmeticRequest
 
     request = ArithmeticRequest(
-        operation="addition",
-        level=3,
-        number_type=NumberType.FRACTION,
+        operation="mixed",
+        level=4,
+        number_type=NumberType.MIXED_FRACTION,
         seed=123,
-        operand_count=2
+        operand_count=3
     )
     
     async def run():
         response = await generate_arithmetic_question(request)
+        print(f"\nRequesting MIXED_FRACTION:")
         print(f"Expression: {response.data.expression}")
         print(f"Expression LaTeX: {response.data.expression_latex}")
         
@@ -65,6 +66,7 @@ def test_full_response_latex():
             print(f"Var {v.id}: {v.value} -> LaTeX: {v.value_latex}")
         
         print(f"Correct Answer: {response.data.correct_answer} -> LaTeX: {response.data.correct_answer_latex}")
+        print(f"Choices: {response.data.answer_choices}")
         print(f"Choices LaTeX: {response.data.answer_choices_latex}")
 
     asyncio.run(run())
