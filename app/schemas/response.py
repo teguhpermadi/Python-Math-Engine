@@ -17,6 +17,7 @@ class VariableInfo(BaseModel):
     id: str
     label: Optional[str] = None
     value: str
+    value_latex: Optional[str] = None
     unit: Optional[str] = None
     type: str
 
@@ -35,7 +36,9 @@ class ArithmeticData(BaseModel):
     expression_latex: Optional[str] = None
     blueprint: List[BlueprintStep]
     answer_choices: List[str]
+    answer_choices_latex: Optional[List[str]] = None
     correct_answer: str
+    correct_answer_latex: Optional[str] = None
     answer_type: str
 
 class ArithmeticResponse(BaseModel):

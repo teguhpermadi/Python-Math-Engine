@@ -1,4 +1,5 @@
 import random
+from fractions import Fraction
 from dataclasses import dataclass
 from typing import Literal, Any, cast
 from ..number_types.registry import NumberType
@@ -98,6 +99,7 @@ def generate_mixed_operations(
 
     # Generate Expression string
     expression = _build_expression_string(root)
+    expression_latex = _build_latex_string(root)
     
     # Generate Steps (Post-order traversal)
     steps = []
@@ -107,6 +109,7 @@ def generate_mixed_operations(
         "variables": variables,
         "operation": "mixed",
         "expression": expression,
+        "expression_latex": expression_latex,
         "result": format_result(root.value),
         "result_type": get_result_type(root.value),
         "steps": steps
@@ -169,7 +172,7 @@ def _split_value(target, op, number_type, level_config, rng):
         # target = b-th root of a -> a = target ^ b
         b = rng.choice(level_config.allowed_roots) if level_config.allowed_roots else 2
         a = target ** b
-        return a, b
+        return b, a
     elif op == "modulo":
         # target = a % b -> a = k*b + target
         b = rng.randint(target + 1, target + 10)
@@ -206,6 +209,53 @@ def _build_expression_string(node):
             right_str = f"({right_str})"
 
     return f"{left_str} {get_sym(node.op)} {right_str}"
+
+def _build_latex_string(node):
+    if node.is_leaf:
+        val = node.value
+        if isinstance(val, Fraction):
+            if val.denominator == 1:
+                return str(val.numerator)
+            return f"\\frac{{{val.numerator}}}{{{val.denominator}}}"
+        return format_result(val)
+    
+    left_str = _build_latex_string(node.left)
+    right_str = _build_latex_string(node.right)
+    
+    if node.op == "power":
+        return f"{{{left_str}}}^{{{right_str}}}"
+    
+    if node.op == "root":
+        # left is degree, right is radicand
+        degree = left_str
+        radicand = right_str
+        if degree == "2":
+            return f"\\sqrt{{{radicand}}}"
+        return f"\\sqrt[{degree}]{{{radicand}}}"
+    
+    if node.op == "division":
+        # Render division as fraction in LaTeX for better visuals
+        return f"\\frac{{{left_str}}}{{{right_str}}}"
+
+    # Priority handling for other operators
+    if not node.left.is_leaf and priority(node.left.op) < priority(node.op):
+        left_str = f"\\left({left_str}\\right)"
+    
+    if not node.right.is_leaf:
+        if priority(node.right.op) < priority(node.op):
+            right_str = f"\\left({right_str}\\right)"
+        elif priority(node.right.op) == priority(node.op) and node.op in ["subtraction", "division"]:
+            right_str = f"\\left({right_str}\\right)"
+
+    latex_ops = {
+        "addition": "+",
+        "subtraction": "-",
+        "multiplication": "\\times",
+        "modulo": "\\pmod"
+    }
+    
+    op_sym = latex_ops.get(node.op, get_sym(node.op))
+    return f"{left_str} {op_sym} {right_str}"
 
 def _generate_steps(node, steps):
     if node.is_leaf:

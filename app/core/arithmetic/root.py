@@ -33,11 +33,17 @@ def generate_root(
     symbol = "√" if root_degree == 2 else f"{root_degree}√"
     expression = f"{symbol}{radicand}"
     
+    if root_degree == 2:
+        expression_latex = f"\\sqrt{{{radicand}}}"
+    else:
+        expression_latex = f"\\sqrt[{root_degree}]{{{radicand}}}"
+    
     return {
         "radicand": str(radicand),
         "root_degree": root_degree,
         "operation": "root",
         "expression": expression,
+        "expression_latex": expression_latex,
         "result": str(res_val),
         "result_type": "natural",
         "steps": [f"{expression} = {res_val}"]

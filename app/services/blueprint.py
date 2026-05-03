@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 from ..schemas.response import BlueprintStep, VariableInfo
+from ..core.arithmetic.utils import to_latex
 
 def build_arithmetic_blueprint(raw_data: Dict[str, Any], operation: str) -> List[BlueprintStep]:
     """
@@ -58,12 +59,14 @@ def build_variables(raw_data: Dict[str, Any]) -> List[VariableInfo]:
             vars.append(VariableInfo(
                 id=f"v{i+1}",
                 value=val,
+                value_latex=to_latex(val),
                 type="unknown" # Bisa diperluas
             ))
     elif "base" in raw_data: # Untuk power
-        vars.append(VariableInfo(id="v1", value=raw_data["base"], type="base"))
-        vars.append(VariableInfo(id="v2", value=raw_data["exponent"], type="exponent"))
+        vars.append(VariableInfo(id="v1", value=raw_data["base"], value_latex=to_latex(raw_data["base"]), type="base"))
+        vars.append(VariableInfo(id="v2", value=raw_data["exponent"], value_latex=to_latex(raw_data["exponent"]), type="exponent"))
     elif "radicand" in raw_data: # Untuk root
-        vars.append(VariableInfo(id="v1", value=raw_data["radicand"], type="radicand"))
+        vars.append(VariableInfo(id="v1", value=raw_data["radicand"], value_latex=to_latex(raw_data["radicand"]), type="radicand"))
+        vars.append(VariableInfo(id="v2", value=str(raw_data["root_degree"]), value_latex=to_latex(str(raw_data["root_degree"])), type="degree"))
         
     return vars

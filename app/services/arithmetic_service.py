@@ -22,6 +22,7 @@ from .blueprint import build_arithmetic_blueprint, build_variables
 from .distractor import generate_distractors
 from .ai_storyteller import ai_storyteller
 from ..exceptions import InvalidLevelError, InvalidNumberTypeForLevelError
+from ..core.arithmetic.utils import to_latex
 
 async def generate_arithmetic_question(request: ArithmeticRequest) -> ArithmeticResponse:
     """
@@ -125,10 +126,12 @@ async def generate_arithmetic_question(request: ArithmeticRequest) -> Arithmetic
         data=ArithmeticData(
             variables=variables,
             expression=raw_data["expression"],
-            expression_latex=raw_data.get("expression_latex", ""),
+            expression_latex=raw_data.get("expression_latex") or to_latex(raw_data["expression"]),
             blueprint=blueprint,
             answer_choices=choices,
+            answer_choices_latex=[to_latex(c) for c in choices],
             correct_answer=correct_answer,
+            correct_answer_latex=to_latex(correct_answer),
             answer_type=raw_data["result_type"]
         )
     )

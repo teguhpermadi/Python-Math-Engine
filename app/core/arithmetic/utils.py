@@ -1,3 +1,4 @@
+import sympy
 from fractions import Fraction
 from ..number_types.registry import NumberType
 from ..number_types.validators import classify_number
@@ -34,10 +35,42 @@ def simplify_fraction(f: Fraction) -> Fraction:
     return f
 
 def to_latex(expression: str) -> str:
-    """Konversi sederhana ke LaTeX (bisa dikembangkan)."""
-    expr = expression.replace(" / ", " \\div ")
-    expr = expr.replace(" * ", " \\times ")
-    expr = expr.replace(" x ", " \\times ")
-    # Handle fractions a/b -> \frac{a}{b}
-    # This is a very basic implementation
-    return expr
+    """Konversi sederhana ke LaTeX menggunakan SymPy."""
+    if not expression:
+        return ""
+    
+    import re
+    
+    # 0. Handle simple fractions like "1/2" directly to avoid SymPy evaluate=False quirks
+    # (SymPy evaluate=False often turns 1/2 into 1 * \frac{1}{2})
+    if re.match(r"^-?\d+/\d+$", expression.strip()):
+        parts = expression.strip().split("/")
+        return f"\\frac{{{parts[0]}}}{{{parts[1]}}}"
+    
+    # 1. Bersihkan expression dari simbol non-standar SymPy
+    # × -> *, ÷ -> /, √ -> sqrt()
+    expr_clean = expression.replace("×", " * ").replace("÷", " / ")
+    
+    # Handle √x -> sqrt(x). Ini sederhana, hanya untuk satu angka setelah √
+    expr_clean = re.sub(r"√(\d+)", r"sqrt(\1)", expr_clean)
+    # Jika sudah ada sqrt, pastikan ada kurung
+    if "sqrt" in expr_clean and "(" not in expr_clean:
+         expr_clean = expr_clean.replace("sqrt", "sqrt(") + ")"
+    
+    try:
+        # 2. Gunakan SymPy sympify dengan evaluate=False agar struktur soal tetap terjaga
+        parsed_expr = sympy.sympify(expr_clean, evaluate=False)
+        
+        # 3. Convert ke LaTeX dengan mul_symbol='times' agar 2*3 jadi 2 \times 3
+        latex_str = sympy.latex(parsed_expr, mul_symbol='times')
+        
+        # 4. Cleanup: hapus "1 \times " yang sering muncul akibat evaluate=False pada pecahan
+        latex_str = latex_str.replace("1 \\times ", "")
+        
+        return latex_str
+    except Exception:
+        # Fallback jika parsing gagal
+        expr = expression.replace(" / ", " \\div ")
+        expr = expr.replace(" * ", " \\times ")
+        expr = expr.replace(" x ", " \\times ")
+        return expr

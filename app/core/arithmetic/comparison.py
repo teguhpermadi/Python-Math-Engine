@@ -3,7 +3,7 @@ from typing import Literal
 from ..number_types.registry import NumberType
 from ..number_types.generators import generate_number
 from ..levels.config import LevelConfig
-from .utils import format_result
+from .utils import format_result, to_latex
 
 def generate_comparison(
     rng: random.Random,
@@ -30,10 +30,14 @@ def generate_comparison(
     op1_str = format_result(op1)
     op2_str = format_result(op2)
     
+    # In LaTeX, we can use a box or dots for the empty space
+    expression_latex = f"{to_latex(op1_str)} \\; \\square \\; {to_latex(op2_str)}"
+    
     return {
         "operands": [op1_str, op2_str],
         "operation": "comparison",
         "expression": f"{op1_str} ___ {op2_str}",
+        "expression_latex": expression_latex,
         "result": result,
         "steps": [f"Bandingkan {op1_str} dengan {op2_str}", f"Hasil: {op1_str} {result} {op2_str}"]
     }
@@ -63,11 +67,14 @@ def generate_ordering(
     num_strs = [format_result(n) for n in nums]
     result_strs = [format_result(n) for n in sorted_nums]
     
+    expression_latex = ", ".join([to_latex(s) for s in num_strs])
+    
     return {
         "operands": num_strs,
         "operation": "ordering",
         "order_type": order,
         "expression": ", ".join(num_strs),
+        "expression_latex": expression_latex,
         "result": result_strs,
         "steps": [f"Urutkan {order}: " + ", ".join(result_strs)]
     }

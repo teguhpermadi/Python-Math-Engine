@@ -38,12 +38,14 @@ def generate_power(
     exp_str = "".join(superscripts.get(c, c) for c in str(exponent))
     
     expression = f"{base_str}{exp_str}"
+    expression_latex = f"{base_str}^{{{exponent}}}"
     
     return {
         "base": base_str,
         "exponent": str(exponent),
         "operation": "power",
         "expression": expression,
+        "expression_latex": expression_latex,
         "result": format_result(result),
         "result_type": get_result_type(result),
         "steps": [f"{base_str}^{exponent} = {format_result(result)}"]
