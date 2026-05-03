@@ -19,6 +19,8 @@ def test_latex_conversion():
         ("10 \u00f7 2", "\\frac{10}{2}"), # \u00f7 is ÷, SymPy prefers \frac
         ("\u221a16", "\\sqrt{16}"), # \u221a is √
         ("5^2", "5^{2}"),
+        ("11 \u00d7 2", "11 \\times 2"),
+        ("2 \u00d7 1/2", "2 \\times \\frac{1}{2}"),
     ]
     
     print("Testing LaTeX Conversion Utility:")

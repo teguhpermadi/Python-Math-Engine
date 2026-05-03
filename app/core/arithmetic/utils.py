@@ -64,8 +64,9 @@ def to_latex(expression: str) -> str:
         # 3. Convert ke LaTeX dengan mul_symbol='times' agar 2*3 jadi 2 \times 3
         latex_str = sympy.latex(parsed_expr, mul_symbol='times')
         
-        # 4. Cleanup: hapus "1 \times " yang sering muncul akibat evaluate=False pada pecahan
-        latex_str = latex_str.replace("1 \\times ", "")
+        # 4. Cleanup: hapus "1 \times " yang sering muncul akibat evaluate=False pada pecahan.
+        # Gunakan regex agar tidak tidak sengaja menghapus angka seperti "11 \times "
+        latex_str = re.sub(r"(?<!\d)1 \\times ", "", latex_str)
         
         return latex_str
     except Exception:
