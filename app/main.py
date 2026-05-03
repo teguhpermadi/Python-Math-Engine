@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.routers import arithmetic, geometry, measurement, algebra, statistics, angles, exam
 from app.exceptions import MathEngineError
@@ -9,6 +10,15 @@ app = FastAPI(
     description="Microservice for deterministic math problem generation",
     version="2.0.0",
     debug=settings.DEBUG
+)
+
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Izinkan semua origin untuk development, atau ganti dengan ["http://localhost:5173"]
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.exception_handler(MathEngineError)
