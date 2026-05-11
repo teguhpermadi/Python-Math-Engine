@@ -70,6 +70,12 @@ async def generate_geometry_question(
         if level >= 3: shapes += ["pyramid", "prism"]
         if level >= 5: shapes.append("sphere")
     
+    if shape_type:
+        available = get_available_shapes()
+        dim_key = "2D" if dimension.upper() == "2D" else "3D"
+        if shape_type not in available[dim_key]:
+            raise ValueError(f"Shape '{shape_type}' is not available for {dim_key} dimension")
+
     target_shape = shape_type or rng.choice(shapes)
     
     # 2. Generate Dimensi & Hasil
