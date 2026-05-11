@@ -10,6 +10,7 @@ class GeometricResult:
     area: float | None = None
     volume: float | None = None
     perimeter: float | None = None
+    angles: dict | None = None
 
 def generate_cube(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
     side = rng.randint(1, level_config.level * 5)
@@ -44,6 +45,19 @@ def _get_polygon_area(n: int, side: float) -> float:
     """Menghitung luas poligon beraturan dengan n sisi."""
     return (n * side**2) / (4 * math.tan(math.pi / n))
 
+def _get_triangle_angles(a: float, b: float, c: float) -> dict:
+    """Menghitung sudut segitiga (derajat) dari 3 sisi pakai Law of Cosines.
+    Returns {A, B, C} — angle_A opposite side_a, dst.
+    """
+    angle_a = math.degrees(math.acos((b**2 + c**2 - a**2) / (2 * b * c)))
+    angle_b = math.degrees(math.acos((a**2 + c**2 - b**2) / (2 * a * c)))
+    angle_c = math.degrees(math.acos((a**2 + b**2 - c**2) / (2 * a * b)))
+    return {
+        "A": round(angle_a, 2),
+        "B": round(angle_b, 2),
+        "C": round(angle_c, 2)
+    }
+
 def generate_pyramid(rng: random.Random, level_config: LevelConfig, sides: int = 4) -> GeometricResult:
     side_length = rng.randint(2, level_config.level * 4)
     height = rng.randint(2, level_config.level * 5)
@@ -74,7 +88,8 @@ def generate_square(rng: random.Random, level_config: LevelConfig) -> GeometricR
         shape="square",
         dimensions={"side": side},
         area=side ** 2,
-        perimeter=4 * side
+        perimeter=4 * side,
+        angles={"A": 90, "B": 90, "C": 90, "D": 90}
     )
 
 def generate_rectangle(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
@@ -84,7 +99,8 @@ def generate_rectangle(rng: random.Random, level_config: LevelConfig) -> Geometr
         shape="rectangle",
         dimensions={"length": l, "width": w},
         area=l * w,
-        perimeter=2 * (l + w)
+        perimeter=2 * (l + w),
+        angles={"A": 90, "B": 90, "C": 90, "D": 90}
     )
 
 def generate_circle(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
@@ -101,11 +117,13 @@ def generate_triangle(rng: random.Random, level_config: LevelConfig) -> Geometri
     base = rng.randint(2, level_config.level * 8)
     height = rng.randint(2, level_config.level * 8)
     hypotenuse = round(math.sqrt(base**2 + height**2), 2)
+    angles = _get_triangle_angles(base, height, hypotenuse)
     return GeometricResult(
         shape="triangle",
         dimensions={"base": base, "height": height, "hypotenuse": hypotenuse},
         area=0.5 * base * height,
-        perimeter=round(base + height + hypotenuse, 2)
+        perimeter=round(base + height + hypotenuse, 2),
+        angles=angles
     )
 
 
@@ -115,11 +133,13 @@ def generate_right_triangle(rng: random.Random, level_config: LevelConfig) -> Ge
     base = rng.randint(2, level_config.level * 8)
     height = rng.randint(2, level_config.level * 8)
     hypotenuse = round(math.sqrt(base**2 + height**2), 2)
+    angles = _get_triangle_angles(base, height, hypotenuse)
     return GeometricResult(
         shape="right_triangle",
         dimensions={"base": base, "height": height, "hypotenuse": hypotenuse},
         area=round(0.5 * base * height, 2),
-        perimeter=round(base + height + hypotenuse, 2)
+        perimeter=round(base + height + hypotenuse, 2),
+        angles=angles
     )
 
 
@@ -131,7 +151,8 @@ def generate_equilateral_triangle(rng: random.Random, level_config: LevelConfig)
         shape="equilateral_triangle",
         dimensions={"side": side, "height": height},
         area=area,
-        perimeter=round(3 * side, 2)
+        perimeter=round(3 * side, 2),
+        angles={"A": 60, "B": 60, "C": 60}
     )
 
 
@@ -142,11 +163,13 @@ def generate_isosceles_triangle(rng: random.Random, level_config: LevelConfig) -
     half_base = round(base / 2, 2)
     height = round(math.sqrt(leg**2 - half_base**2), 2)
     area = round(0.5 * base * height, 2)
+    angles = _get_triangle_angles(leg, leg, base)
     return GeometricResult(
         shape="isosceles_triangle",
         dimensions={"base": base, "leg": leg, "height": height, "half_base": half_base},
         area=area,
-        perimeter=round(2 * leg + base, 2)
+        perimeter=round(2 * leg + base, 2),
+        angles=angles
     )
 
 
@@ -161,11 +184,13 @@ def generate_scalene_triangle(rng: random.Random, level_config: LevelConfig) -> 
             break
     s = (a + b + c) / 2
     area = round(math.sqrt(s * (s - a) * (s - b) * (s - c)), 2)
+    angles = _get_triangle_angles(a, b, c)
     return GeometricResult(
         shape="scalene_triangle",
         dimensions={"side_a": a, "side_b": b, "side_c": c},
         area=area,
-        perimeter=round(a + b + c, 2)
+        perimeter=round(a + b + c, 2),
+        angles=angles
     )
 
 
@@ -203,11 +228,13 @@ def generate_acute_triangle(rng: random.Random, level_config: LevelConfig) -> Ge
         a, b, c = result
     s = (a + b + c) / 2
     area = round(math.sqrt(s * (s - a) * (s - b) * (s - c)), 2)
+    angles = _get_triangle_angles(a, b, c)
     return GeometricResult(
         shape="acute_triangle",
         dimensions={"side_a": a, "side_b": b, "side_c": c},
         area=area,
-        perimeter=round(a + b + c, 2)
+        perimeter=round(a + b + c, 2),
+        angles=angles
     )
 
 
@@ -220,11 +247,13 @@ def generate_obtuse_triangle(rng: random.Random, level_config: LevelConfig) -> G
         a, b, c = result
     s = (a + b + c) / 2
     area = round(math.sqrt(s * (s - a) * (s - b) * (s - c)), 2)
+    angles = _get_triangle_angles(a, b, c)
     return GeometricResult(
         shape="obtuse_triangle",
         dimensions={"side_a": a, "side_b": b, "side_c": c},
         area=area,
-        perimeter=round(a + b + c, 2)
+        perimeter=round(a + b + c, 2),
+        angles=angles
     )
 
 
@@ -233,11 +262,13 @@ def generate_parallelogram(rng: random.Random, level_config: LevelConfig) -> Geo
     side = rng.randint(2, level_config.level * 6)
     max_h = min(side, level_config.level * 6)
     height = rng.randint(2, max_h)
+    angle_theta = round(math.degrees(math.asin(height / side)), 2)
     return GeometricResult(
         shape="parallelogram",
         dimensions={"base": base, "side": side, "height": height},
         area=round(base * height, 2),
-        perimeter=round(2 * (base + side), 2)
+        perimeter=round(2 * (base + side), 2),
+        angles={"A": angle_theta, "B": round(180 - angle_theta, 2), "C": angle_theta, "D": round(180 - angle_theta, 2)}
     )
 
 
@@ -246,11 +277,13 @@ def generate_right_trapezoid(rng: random.Random, level_config: LevelConfig) -> G
     b = rng.randint(a + 1, a + level_config.level * 5)
     height = rng.randint(2, level_config.level * 6)
     slant = round(math.sqrt(height**2 + (b - a)**2), 2)
+    angle_b = round(math.degrees(math.acos((b - a) / slant)), 2)
     return GeometricResult(
         shape="right_trapezoid",
         dimensions={"base_a": a, "base_b": b, "height": height, "slant": slant},
         area=round(0.5 * (a + b) * height, 2),
-        perimeter=round(a + b + height + slant, 2)
+        perimeter=round(a + b + height + slant, 2),
+        angles={"A": 90, "B": angle_b, "C": round(180 - angle_b, 2), "D": 90}
     )
 
 
@@ -261,11 +294,13 @@ def generate_isosceles_trapezoid(rng: random.Random, level_config: LevelConfig) 
     leg = rng.randint(min_leg, level_config.level * 6)
     diff = (b - a) / 2
     height = round(math.sqrt(leg**2 - diff**2), 2)
+    angle_theta = round(math.degrees(math.acos(diff / leg)), 2)
     return GeometricResult(
         shape="isosceles_trapezoid",
         dimensions={"base_a": a, "base_b": b, "leg": leg, "height": height},
         area=round(0.5 * (a + b) * height, 2),
-        perimeter=round(a + b + 2 * leg, 2)
+        perimeter=round(a + b + 2 * leg, 2),
+        angles={"A": angle_theta, "B": angle_theta, "C": round(180 - angle_theta, 2), "D": round(180 - angle_theta, 2)}
     )
 
 
@@ -276,11 +311,15 @@ def generate_kite(rng: random.Random, level_config: LevelConfig) -> GeometricRes
     d2 = 2 * t
     side1 = round(math.sqrt(p**2 + t**2), 2)
     side2 = round(math.sqrt((d1 - p)**2 + t**2), 2)
+    angle_a = round(math.degrees(math.acos((p**2 - t**2) / (p**2 + t**2))), 2)
+    angle_b = round(math.degrees(math.acos(((d1 - p)**2 - t**2) / ((d1 - p)**2 + t**2))), 2)
+    angle_c = round(math.degrees(math.acos((-p * (d1 - p) + t**2) / (side1 * side2))), 2)
     return GeometricResult(
         shape="kite",
         dimensions={"diagonal_1": d1, "diagonal_2": d2, "segment_p": p, "segment_t": t, "side1": side1, "side2": side2},
         area=round(0.5 * d1 * d2, 2),
-        perimeter=round(2 * (side1 + side2), 2)
+        perimeter=round(2 * (side1 + side2), 2),
+        angles={"A": angle_a, "B": angle_b, "C": angle_c, "D": angle_c}
     )
 
 
@@ -288,11 +327,13 @@ def generate_rhombus(rng: random.Random, level_config: LevelConfig) -> Geometric
     d1 = rng.randint(4, level_config.level * 8)
     d2 = rng.randint(4, level_config.level * 8)
     side = round(math.sqrt((d1 / 2)**2 + (d2 / 2)**2), 2)
+    angle_a = round(math.degrees(math.acos((d1**2 - d2**2) / (d1**2 + d2**2))), 2)
     return GeometricResult(
         shape="rhombus",
         dimensions={"diagonal_1": d1, "diagonal_2": d2, "side": side},
         area=round(0.5 * d1 * d2, 2),
-        perimeter=round(4 * side, 2)
+        perimeter=round(4 * side, 2),
+        angles={"A": angle_a, "B": round(180 - angle_a, 2), "C": angle_a, "D": round(180 - angle_a, 2)}
     )
 
 
@@ -315,7 +356,8 @@ def generate_pentagon(rng: random.Random, level_config: LevelConfig) -> Geometri
         shape="pentagon",
         dimensions={"side": side},
         area=area,
-        perimeter=round(5 * side, 2)
+        perimeter=round(5 * side, 2),
+        angles={"A": 108, "B": 108, "C": 108, "D": 108, "E": 108}
     )
 
 
@@ -326,7 +368,8 @@ def generate_hexagon(rng: random.Random, level_config: LevelConfig) -> Geometric
         shape="hexagon",
         dimensions={"side": side},
         area=area,
-        perimeter=round(6 * side, 2)
+        perimeter=round(6 * side, 2),
+        angles={"A": 120, "B": 120, "C": 120, "D": 120, "E": 120, "F": 120}
     )
 
 
@@ -337,5 +380,6 @@ def generate_octagon(rng: random.Random, level_config: LevelConfig) -> Geometric
         shape="octagon",
         dimensions={"side": side},
         area=area,
-        perimeter=round(8 * side, 2)
+        perimeter=round(8 * side, 2),
+        angles={"A": 135, "B": 135, "C": 135, "D": 135, "E": 135, "F": 135, "G": 135, "H": 135}
     )

@@ -243,6 +243,10 @@ async def generate_geometry_question(
             "story": story,
             "mesh": mesh,
             "dimensions": res.dimensions,
+            "perimeter": res.perimeter,
+            "angles": res.angles,
+            "area": res.area,
+            "volume": res.volume,
             "correct_answer": str(correct_answer)
         }
     }
