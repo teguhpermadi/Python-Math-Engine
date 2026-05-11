@@ -103,7 +103,7 @@ def generate_triangle(rng: random.Random, level_config: LevelConfig) -> Geometri
     hypotenuse = round(math.sqrt(base**2 + height**2), 2)
     return GeometricResult(
         shape="triangle",
-        dimensions={"base": base, "height": height},
+        dimensions={"base": base, "height": height, "hypotenuse": hypotenuse},
         area=0.5 * base * height,
         perimeter=round(base + height + hypotenuse, 2)
     )
@@ -139,11 +139,12 @@ def generate_isosceles_triangle(rng: random.Random, level_config: LevelConfig) -
     base = rng.randint(2, level_config.level * 8)
     min_leg = base // 2 + 1
     leg = rng.randint(min_leg, level_config.level * 8)
-    height = round(math.sqrt(leg**2 - (base / 2)**2), 2)
+    half_base = round(base / 2, 2)
+    height = round(math.sqrt(leg**2 - half_base**2), 2)
     area = round(0.5 * base * height, 2)
     return GeometricResult(
         shape="isosceles_triangle",
-        dimensions={"base": base, "leg": leg, "height": height},
+        dimensions={"base": base, "leg": leg, "height": height, "half_base": half_base},
         area=area,
         perimeter=round(2 * leg + base, 2)
     )
@@ -277,7 +278,7 @@ def generate_kite(rng: random.Random, level_config: LevelConfig) -> GeometricRes
     side2 = round(math.sqrt((d1 - p)**2 + t**2), 2)
     return GeometricResult(
         shape="kite",
-        dimensions={"diagonal_1": d1, "diagonal_2": d2},
+        dimensions={"diagonal_1": d1, "diagonal_2": d2, "segment_p": p, "segment_t": t, "side1": side1, "side2": side2},
         area=round(0.5 * d1 * d2, 2),
         perimeter=round(2 * (side1 + side2), 2)
     )
