@@ -5,12 +5,22 @@ from app.core.levels.config import get_level_config
 from app.core.geometry.shapes import (
     generate_cube, generate_block, generate_sphere, 
     generate_pyramid, generate_prism,
-    generate_square, generate_rectangle, generate_circle, generate_triangle
+    generate_square, generate_rectangle, generate_circle, generate_triangle,
+    generate_right_triangle, generate_equilateral_triangle,
+    generate_isosceles_triangle, generate_scalene_triangle,
+    generate_acute_triangle, generate_obtuse_triangle,
+    generate_parallelogram, generate_right_trapezoid,
+    generate_isosceles_trapezoid, generate_kite, generate_rhombus,
+    generate_ellipse, generate_pentagon, generate_hexagon, generate_octagon,
 )
 from app.core.geometry.mesh import (
     generate_cube_mesh, generate_block_mesh,
     generate_pyramid_mesh, generate_prism_mesh,
-    generate_rectangle_2d_mesh, generate_polygon_2d_mesh
+    generate_rectangle_2d_mesh, generate_polygon_2d_mesh,
+    generate_right_triangle_2d_mesh, generate_equilateral_triangle_mesh,
+    generate_isosceles_triangle_mesh, generate_scalene_triangle_mesh,
+    generate_parallelogram_mesh, generate_trapezoid_mesh,
+    generate_kite_mesh, generate_rhombus_mesh, generate_ellipse_mesh,
 )
 from app.services.ai_storyteller import ai_storyteller
 
@@ -19,7 +29,15 @@ def get_available_shapes():
     Mengembalikan daftar semua bangun datar (2D) dan bangun ruang (3D) yang didukung.
     """
     return {
-        "2D": ["square", "rectangle", "triangle", "circle"],
+        "2D": [
+            "square", "rectangle", "circle", "ellipse",
+            "triangle", "right_triangle", "equilateral_triangle",
+            "isosceles_triangle", "scalene_triangle",
+            "acute_triangle", "obtuse_triangle",
+            "parallelogram", "right_trapezoid", "isosceles_trapezoid",
+            "kite", "rhombus",
+            "pentagon", "hexagon", "octagon",
+        ],
         "3D": ["cube", "block", "pyramid", "prism", "sphere"]
     }
 
@@ -37,8 +55,16 @@ async def generate_geometry_question(
     
     # 1. Pilih Bangun Berdasarkan Dimensi
     if dimension.upper() == "2D":
-        shapes = ["square", "rectangle", "triangle"]
-        if level >= 3: shapes.append("circle")
+        shapes = [
+            "square", "rectangle", "triangle", "right_triangle",
+            "equilateral_triangle", "isosceles_triangle", "scalene_triangle",
+            "parallelogram", "right_trapezoid", "isosceles_trapezoid",
+            "kite", "rhombus",
+        ]
+        if level >= 3:
+            shapes += ["circle", "ellipse", "pentagon", "hexagon", "octagon"]
+        if level >= 4:
+            shapes += ["acute_triangle", "obtuse_triangle"]
     else:
         shapes = ["cube", "block"]
         if level >= 3: shapes += ["pyramid", "prism"]
@@ -71,6 +97,106 @@ async def generate_geometry_question(
         res = generate_circle(rng, config)
         mesh = generate_polygon_2d_mesh(32, res.dimensions["radius"])
         expression = f"Hitung luas lingkaran dengan jari-jari {res.dimensions['radius']}"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "ellipse":
+        res = generate_ellipse(rng, config)
+        mesh = generate_ellipse_mesh(res.dimensions["semi_major"], res.dimensions["semi_minor"])
+        expression = f"Hitung luas elips (a={res.dimensions['semi_major']}, b={res.dimensions['semi_minor']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "right_triangle":
+        res = generate_right_triangle(rng, config)
+        d = res.dimensions
+        mesh = generate_right_triangle_2d_mesh(d["base"], d["height"])
+        expression = f"Hitung luas segitiga siku-siku (alas={d['base']}, tinggi={d['height']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "equilateral_triangle":
+        res = generate_equilateral_triangle(rng, config)
+        mesh = generate_equilateral_triangle_mesh(res.dimensions["side"])
+        expression = f"Hitung luas segitiga sama sisi (sisi={res.dimensions['side']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "isosceles_triangle":
+        res = generate_isosceles_triangle(rng, config)
+        d = res.dimensions
+        mesh = generate_isosceles_triangle_mesh(d["base"], d["height"])
+        expression = f"Hitung luas segitiga sama kaki (alas={d['base']}, kaki={d['leg']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "scalene_triangle":
+        res = generate_scalene_triangle(rng, config)
+        d = res.dimensions
+        mesh = generate_scalene_triangle_mesh(d["side_a"], d["side_b"], d["side_c"])
+        expression = f"Hitung luas segitiga sembarang (sisi={d['side_a']}, {d['side_b']}, {d['side_c']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "acute_triangle":
+        res = generate_acute_triangle(rng, config)
+        d = res.dimensions
+        mesh = generate_scalene_triangle_mesh(d["side_a"], d["side_b"], d["side_c"])
+        expression = f"Hitung luas segitiga lancip (sisi={d['side_a']}, {d['side_b']}, {d['side_c']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "obtuse_triangle":
+        res = generate_obtuse_triangle(rng, config)
+        d = res.dimensions
+        mesh = generate_scalene_triangle_mesh(d["side_a"], d["side_b"], d["side_c"])
+        expression = f"Hitung luas segitiga tumpul (sisi={d['side_a']}, {d['side_b']}, {d['side_c']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "parallelogram":
+        res = generate_parallelogram(rng, config)
+        d = res.dimensions
+        mesh = generate_parallelogram_mesh(d["base"], d["side"], d["height"])
+        expression = f"Hitung luas jajargenjang (alas={d['base']}, tinggi={d['height']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "right_trapezoid":
+        res = generate_right_trapezoid(rng, config)
+        d = res.dimensions
+        mesh = generate_trapezoid_mesh(d["base_a"], d["base_b"], d["height"], is_isosceles=False)
+        expression = f"Hitung luas trapesium siku-siku (a={d['base_a']}, b={d['base_b']}, t={d['height']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "isosceles_trapezoid":
+        res = generate_isosceles_trapezoid(rng, config)
+        d = res.dimensions
+        mesh = generate_trapezoid_mesh(d["base_a"], d["base_b"], d["height"])
+        expression = f"Hitung luas trapesium sama kaki (a={d['base_a']}, b={d['base_b']}, t={d['height']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "kite":
+        res = generate_kite(rng, config)
+        d = res.dimensions
+        mesh = generate_kite_mesh(d["diagonal_1"], d["diagonal_2"], d["diagonal_1"] / 2)
+        expression = f"Hitung luas layang-layang (d1={d['diagonal_1']}, d2={d['diagonal_2']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "rhombus":
+        res = generate_rhombus(rng, config)
+        d = res.dimensions
+        mesh = generate_rhombus_mesh(d["diagonal_1"], d["diagonal_2"])
+        expression = f"Hitung luas belah ketupat (d1={d['diagonal_1']}, d2={d['diagonal_2']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "pentagon":
+        res = generate_pentagon(rng, config)
+        mesh = generate_polygon_2d_mesh(5, res.dimensions["side"] / (2 * math.sin(math.pi / 5)))
+        expression = f"Hitung luas segi lima beraturan (sisi={res.dimensions['side']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "hexagon":
+        res = generate_hexagon(rng, config)
+        mesh = generate_polygon_2d_mesh(6, res.dimensions["side"] / (2 * math.sin(math.pi / 6)))
+        expression = f"Hitung luas segi enam beraturan (sisi={res.dimensions['side']})"
+        correct_answer = f"{res.area:.2f}"
+
+    elif target_shape == "octagon":
+        res = generate_octagon(rng, config)
+        mesh = generate_polygon_2d_mesh(8, res.dimensions["side"] / (2 * math.sin(math.pi / 8)))
+        expression = f"Hitung luas segi delapan beraturan (sisi={res.dimensions['side']})"
         correct_answer = f"{res.area:.2f}"
 
     elif target_shape == "cube":

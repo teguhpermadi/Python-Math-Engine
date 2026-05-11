@@ -86,6 +86,71 @@ def generate_prism_mesh(n: int, side: float, height: float) -> dict:
 
 # ── 2D MESH ─────────────────────────────────────────────────────────────────
 
+def generate_right_triangle_2d_mesh(base: float, height: float) -> dict:
+    vertices = [[0, 0, 0], [base, 0, 0], [0, height, 0]]
+    faces = [[0, 1, 2]]
+    return {"vertices": vertices, "faces": faces}
+
+
+def generate_equilateral_triangle_mesh(side: float) -> dict:
+    h = (math.sqrt(3) / 2) * side
+    vertices = [[0, 0, 0], [side, 0, 0], [side / 2, h, 0]]
+    faces = [[0, 1, 2]]
+    return {"vertices": vertices, "faces": faces}
+
+
+def generate_isosceles_triangle_mesh(base: float, height: float) -> dict:
+    vertices = [[0, 0, 0], [base, 0, 0], [base / 2, height, 0]]
+    faces = [[0, 1, 2]]
+    return {"vertices": vertices, "faces": faces}
+
+
+def generate_scalene_triangle_mesh(a: float, b: float, c: float) -> dict:
+    cx = (a**2 + c**2 - b**2) / (2 * c)
+    cy = math.sqrt(max(0, a**2 - cx**2))
+    vertices = [[0, 0, 0], [c, 0, 0], [cx, cy, 0]]
+    faces = [[0, 1, 2]]
+    return {"vertices": vertices, "faces": faces}
+
+
+def generate_parallelogram_mesh(base: float, side: float, height: float) -> dict:
+    offset = math.sqrt(max(0, side**2 - height**2))
+    vertices = [[0, 0, 0], [base, 0, 0], [base + offset, height, 0], [offset, height, 0]]
+    faces = [[0, 1, 2], [0, 2, 3]]
+    return {"vertices": vertices, "faces": faces}
+
+
+def generate_trapezoid_mesh(a: float, b: float, height: float, is_isosceles: bool = True) -> dict:
+    offset = (b - a) / 2
+    vertices = [[0, 0, 0], [b, 0, 0], [offset + a, height, 0], [offset, height, 0]]
+    faces = [[0, 1, 2], [0, 2, 3]]
+    return {"vertices": vertices, "faces": faces}
+
+
+def generate_kite_mesh(d1: float, d2: float, p: float) -> dict:
+    t = d2 / 2
+    vertices = [[0, 0, 0], [d1, 0, 0], [p, t, 0], [p, -t, 0]]
+    faces = [[0, 2, 1], [0, 1, 3], [0, 2, 3], [1, 2, 3]]
+    return {"vertices": vertices, "faces": faces}
+
+
+def generate_rhombus_mesh(d1: float, d2: float) -> dict:
+    vertices = [[-d1 / 2, 0, 0], [0, d2 / 2, 0], [d1 / 2, 0, 0], [0, -d2 / 2, 0]]
+    faces = [[0, 1, 2], [0, 2, 3]]
+    return {"vertices": vertices, "faces": faces}
+
+
+def generate_ellipse_mesh(a: float, b: float, segments: int = 32) -> dict:
+    vertices = []
+    for i in range(segments):
+        angle = 2 * math.pi * i / segments
+        vertices.append([a * math.cos(angle), b * math.sin(angle), 0])
+    faces = []
+    for i in range(1, segments - 1):
+        faces.append([0, i, i + 1])
+    return {"vertices": vertices, "faces": faces}
+
+
 def generate_rectangle_2d_mesh(l: float, w: float) -> dict:
     x, y = l/2, w/2
     vertices = [[-x, -y, 0], [x, -y, 0], [x, y, 0], [-x, y, 0]]
