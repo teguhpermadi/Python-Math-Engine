@@ -5,6 +5,14 @@ from app.core.levels.config import get_level_config
 from app.core.geometry.shapes import (
     generate_cube, generate_block, generate_sphere, 
     generate_pyramid, generate_prism,
+    generate_cylinder, generate_cone, generate_hemisphere,
+    generate_frustum, generate_torus, generate_ellipsoid,
+    generate_tetrahedron, generate_hollow_sphere,
+    generate_octahedron, generate_dodecahedron, generate_icosahedron,
+    generate_right_triangular_prism, generate_isosceles_triangular_prism,
+    generate_parallelogram_prism, generate_trapezoidal_prism,
+    generate_rhombus_prism, generate_kite_prism,
+    generate_rectangular_pyramid, generate_right_triangular_pyramid,
     generate_square, generate_rectangle, generate_circle, generate_triangle,
     generate_right_triangle, generate_equilateral_triangle,
     generate_isosceles_triangle, generate_scalene_triangle,
@@ -16,6 +24,12 @@ from app.core.geometry.shapes import (
 from app.core.geometry.mesh import (
     generate_cube_mesh, generate_block_mesh,
     generate_pyramid_mesh, generate_prism_mesh,
+    generate_sphere_mesh, generate_cylinder_mesh, generate_cone_mesh,
+    generate_hemisphere_mesh, generate_frustum_mesh,
+    generate_torus_mesh, generate_ellipsoid_mesh,
+    generate_tetrahedron_mesh, generate_octahedron_mesh,
+    generate_dodecahedron_mesh, generate_icosahedron_mesh,
+    _extrude_mesh, _pyramidize_mesh,
     generate_rectangle_2d_mesh, generate_polygon_2d_mesh,
     generate_right_triangle_2d_mesh, generate_equilateral_triangle_mesh,
     generate_isosceles_triangle_mesh, generate_scalene_triangle_mesh,
@@ -38,7 +52,16 @@ def get_available_shapes():
             "kite", "rhombus",
             "pentagon", "hexagon", "octagon",
         ],
-        "3D": ["cube", "block", "pyramid", "prism", "sphere"]
+        "3D": [
+            "cube", "block", "pyramid", "prism", "sphere",
+            "cylinder", "cone", "hemisphere", "frustum",
+            "torus", "ellipsoid", "tetrahedron", "hollow_sphere",
+            "octahedron", "dodecahedron", "icosahedron",
+            "right_triangular_prism", "isosceles_triangular_prism",
+            "parallelogram_prism", "trapezoidal_prism",
+            "rhombus_prism", "kite_prism",
+            "rectangular_pyramid", "right_triangular_pyramid",
+        ]
     }
 
 async def generate_geometry_question(
@@ -67,8 +90,9 @@ async def generate_geometry_question(
             shapes += ["acute_triangle", "obtuse_triangle"]
     else:
         shapes = ["cube", "block"]
-        if level >= 3: shapes += ["pyramid", "prism"]
-        if level >= 5: shapes.append("sphere")
+        if level >= 3: shapes += ["pyramid", "prism", "cylinder", "cone", "tetrahedron", "right_triangular_prism", "parallelogram_prism", "rectangular_pyramid", "right_triangular_pyramid"]
+        if level >= 4: shapes += ["hemisphere", "frustum", "octahedron", "isosceles_triangular_prism", "trapezoidal_prism", "rhombus_prism", "kite_prism"]
+        if level >= 5: shapes += ["sphere", "torus", "ellipsoid", "dodecahedron", "icosahedron", "hollow_sphere"]
     
     if shape_type:
         available = get_available_shapes()
@@ -231,10 +255,143 @@ async def generate_geometry_question(
         expression = f"Hitung volume prisma segi-{sides} (s={res.dimensions['side_length']}, t={res.dimensions['height']})"
         correct_answer = f"{res.volume:.1f}" if not res.volume.is_integer() else str(int(res.volume))
     
-    else: # Sphere
+    elif target_shape == "sphere":
         res = generate_sphere(rng, config)
-        mesh = {"type": "sphere", "radius": res.dimensions["radius"]}
+        mesh = generate_sphere_mesh(res.dimensions["radius"])
         expression = f"Hitung volume bola dengan jari-jari {res.dimensions['radius']}"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "cylinder":
+        res = generate_cylinder(rng, config)
+        d = res.dimensions
+        mesh = generate_cylinder_mesh(d["radius"], d["height"])
+        expression = f"Hitung volume tabung (r={d['radius']}, t={d['height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "cone":
+        res = generate_cone(rng, config)
+        d = res.dimensions
+        mesh = generate_cone_mesh(d["radius"], d["height"])
+        expression = f"Hitung volume kerucut (r={d['radius']}, t={d['height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "hemisphere":
+        res = generate_hemisphere(rng, config)
+        d = res.dimensions
+        mesh = generate_hemisphere_mesh(d["radius"])
+        expression = f"Hitung volume belahan bola (r={d['radius']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "frustum":
+        res = generate_frustum(rng, config)
+        d = res.dimensions
+        mesh = generate_frustum_mesh(d["bottom_radius"], d["top_radius"], d["height"])
+        expression = f"Hitung volume kerucut terpancung (R={d['bottom_radius']}, r={d['top_radius']}, t={d['height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "torus":
+        res = generate_torus(rng, config)
+        d = res.dimensions
+        mesh = generate_torus_mesh(d["major_radius"], d["minor_radius"])
+        expression = f"Hitung volume torus (R={d['major_radius']}, r={d['minor_radius']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "ellipsoid":
+        res = generate_ellipsoid(rng, config)
+        d = res.dimensions
+        mesh = generate_ellipsoid_mesh(d["semi_axis_a"], d["semi_axis_b"], d["semi_axis_c"])
+        expression = f"Hitung volume ellipsoid (a={d['semi_axis_a']}, b={d['semi_axis_b']}, c={d['semi_axis_c']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "tetrahedron":
+        res = generate_tetrahedron(rng, config)
+        d = res.dimensions
+        mesh = generate_tetrahedron_mesh(d["side"])
+        expression = f"Hitung volume tetrahedron (sisi={d['side']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "hollow_sphere":
+        res = generate_hollow_sphere(rng, config)
+        d = res.dimensions
+        mesh = generate_sphere_mesh(d["outer_radius"])
+        expression = f"Hitung volume bola berongga (R={d['outer_radius']}, r={d['inner_radius']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "octahedron":
+        res = generate_octahedron(rng, config)
+        d = res.dimensions
+        mesh = generate_octahedron_mesh(d["side"])
+        expression = f"Hitung volume oktahedron (sisi={d['side']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "dodecahedron":
+        res = generate_dodecahedron(rng, config)
+        d = res.dimensions
+        mesh = generate_dodecahedron_mesh(d["side"])
+        expression = f"Hitung volume dodekahedron (sisi={d['side']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "right_triangular_prism":
+        res = generate_right_triangular_prism(rng, config)
+        d = res.dimensions
+        mesh = _extrude_mesh(generate_right_triangle_2d_mesh(d["base_leg"], d["height_leg"])["vertices"], d["prism_height"])
+        expression = f"Hitung volume prisma segitiga siku-siku (a={d['base_leg']}, b={d['height_leg']}, t={d['prism_height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "isosceles_triangular_prism":
+        res = generate_isosceles_triangular_prism(rng, config)
+        d = res.dimensions
+        mesh = _extrude_mesh(generate_isosceles_triangle_mesh(d["base"], d["height"])["vertices"], d["prism_height"])
+        expression = f"Hitung volume prisma segitiga sama kaki (a={d['base']}, kaki={d['leg']}, t={d['prism_height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "parallelogram_prism":
+        res = generate_parallelogram_prism(rng, config)
+        d = res.dimensions
+        mesh = _extrude_mesh(generate_parallelogram_mesh(d["base"], d["side"], d["height"])["vertices"], d["prism_height"])
+        expression = f"Hitung volume prisma jajargenjang (a={d['base']}, t={d['height']}, t_prisma={d['prism_height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "trapezoidal_prism":
+        res = generate_trapezoidal_prism(rng, config)
+        d = res.dimensions
+        mesh = _extrude_mesh(generate_trapezoid_mesh(d["base_a"], d["base_b"], d["height"], is_isosceles=False)["vertices"], d["prism_height"])
+        expression = f"Hitung volume prisma trapesium (a={d['base_a']}, b={d['base_b']}, t={d['height']}, t_prisma={d['prism_height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "rhombus_prism":
+        res = generate_rhombus_prism(rng, config)
+        d = res.dimensions
+        mesh = _extrude_mesh(generate_rhombus_mesh(d["diagonal_1"], d["diagonal_2"])["vertices"], d["prism_height"])
+        expression = f"Hitung volume prisma belah ketupat (d1={d['diagonal_1']}, d2={d['diagonal_2']}, t={d['prism_height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "kite_prism":
+        res = generate_kite_prism(rng, config)
+        d = res.dimensions
+        mesh = _extrude_mesh(generate_kite_mesh(d["diagonal_1"], d["diagonal_2"], d["diagonal_1"] / 2)["vertices"], d["prism_height"])
+        expression = f"Hitung volume prisma layang-layang (d1={d['diagonal_1']}, d2={d['diagonal_2']}, t={d['prism_height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "rectangular_pyramid":
+        res = generate_rectangular_pyramid(rng, config)
+        d = res.dimensions
+        mesh = _pyramidize_mesh(generate_rectangle_2d_mesh(d["length"], d["width"])["vertices"], d["height"])
+        expression = f"Hitung volume limas persegi panjang (p={d['length']}, l={d['width']}, t={d['height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "right_triangular_pyramid":
+        res = generate_right_triangular_pyramid(rng, config)
+        d = res.dimensions
+        mesh = _pyramidize_mesh(generate_right_triangle_2d_mesh(d["base_leg"], d["height_leg"])["vertices"], d["pyramid_height"])
+        expression = f"Hitung volume limas segitiga siku-siku (a={d['base_leg']}, b={d['height_leg']}, t={d['pyramid_height']})"
+        correct_answer = f"{res.volume:.2f}"
+
+    else: # icosahedron
+        res = generate_icosahedron(rng, config)
+        d = res.dimensions
+        mesh = generate_icosahedron_mesh(d["side"])
+        expression = f"Hitung volume ikosahedron (sisi={d['side']})"
         correct_answer = f"{res.volume:.2f}"
 
     # 3. AI Story (Optional)

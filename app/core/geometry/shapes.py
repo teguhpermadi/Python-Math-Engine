@@ -80,6 +80,238 @@ def generate_prism(rng: random.Random, level_config: LevelConfig, sides: int = 3
         area=(2 * base_area) + (sides * side_length * height)
     )
 
+# ── PRISM / PYRAMID WITH 2D BASE SHAPES ─────────────────────────────────────
+
+def generate_right_triangular_prism(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    base = generate_right_triangle(rng, level_config)
+    h = rng.randint(1, level_config.level * 6)
+    d = base.dimensions
+    p = round(d["base"] + d["height"] + d["hypotenuse"], 2)
+    vol = round(base.area * h, 2)
+    sa = round(2 * base.area + p * h, 2)
+    return GeometricResult(
+        shape="right_triangular_prism",
+        dimensions={"base_leg": d["base"], "height_leg": d["height"], "hypotenuse": d["hypotenuse"], "prism_height": h},
+        volume=vol, area=sa
+    )
+
+def generate_isosceles_triangular_prism(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    base = generate_isosceles_triangle(rng, level_config)
+    h = rng.randint(1, level_config.level * 6)
+    d = base.dimensions
+    p = round(2 * d["leg"] + d["base"], 2)
+    vol = round(base.area * h, 2)
+    sa = round(2 * base.area + p * h, 2)
+    return GeometricResult(
+        shape="isosceles_triangular_prism",
+        dimensions={"base": d["base"], "leg": d["leg"], "height": d["height"], "prism_height": h},
+        volume=vol, area=sa
+    )
+
+def generate_parallelogram_prism(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    base = generate_parallelogram(rng, level_config)
+    h = rng.randint(1, level_config.level * 6)
+    d = base.dimensions
+    p = round(2 * (d["base"] + d["side"]), 2)
+    vol = round(base.area * h, 2)
+    sa = round(2 * base.area + p * h, 2)
+    return GeometricResult(
+        shape="parallelogram_prism",
+        dimensions={"base": d["base"], "side": d["side"], "height": d["height"], "prism_height": h},
+        volume=vol, area=sa
+    )
+
+def generate_trapezoidal_prism(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    base = generate_right_trapezoid(rng, level_config)
+    h = rng.randint(1, level_config.level * 6)
+    d = base.dimensions
+    p = round(d["base_a"] + d["base_b"] + d["height"] + d["slant"], 2)
+    vol = round(base.area * h, 2)
+    sa = round(2 * base.area + p * h, 2)
+    return GeometricResult(
+        shape="trapezoidal_prism",
+        dimensions={"base_a": d["base_a"], "base_b": d["base_b"], "height": d["height"], "slant": d["slant"], "prism_height": h},
+        volume=vol, area=sa
+    )
+
+def generate_rhombus_prism(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    base = generate_rhombus(rng, level_config)
+    h = rng.randint(1, level_config.level * 6)
+    d = base.dimensions
+    p = round(4 * d["side"], 2)
+    vol = round(base.area * h, 2)
+    sa = round(2 * base.area + p * h, 2)
+    return GeometricResult(
+        shape="rhombus_prism",
+        dimensions={"diagonal_1": d["diagonal_1"], "diagonal_2": d["diagonal_2"], "side": d["side"], "prism_height": h},
+        volume=vol, area=sa
+    )
+
+def generate_kite_prism(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    base = generate_kite(rng, level_config)
+    h = rng.randint(1, level_config.level * 6)
+    d = base.dimensions
+    p = round(2 * (d["side1"] + d["side2"]), 2)
+    vol = round(base.area * h, 2)
+    sa = round(2 * base.area + p * h, 2)
+    return GeometricResult(
+        shape="kite_prism",
+        dimensions={"diagonal_1": d["diagonal_1"], "diagonal_2": d["diagonal_2"], "side1": d["side1"], "side2": d["side2"], "prism_height": h},
+        volume=vol, area=sa
+    )
+
+def generate_rectangular_pyramid(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    base = generate_rectangle(rng, level_config)
+    height = rng.randint(1, level_config.level * 6)
+    d = base.dimensions
+    l, w = d["length"], d["width"]
+    slant_l = round(math.sqrt((w / 2) ** 2 + height**2), 2)
+    slant_w = round(math.sqrt((l / 2) ** 2 + height**2), 2)
+    lateral = round(l * slant_l + w * slant_w, 2)
+    vol = round((1/3) * base.area * height, 2)
+    sa = round(base.area + lateral, 2)
+    return GeometricResult(
+        shape="rectangular_pyramid",
+        dimensions={"length": l, "width": w, "height": height, "slant_length": slant_l, "slant_width": slant_w},
+        volume=vol, area=sa
+    )
+
+def generate_right_triangular_pyramid(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    base = generate_right_triangle(rng, level_config)
+    height = rng.randint(1, level_config.level * 6)
+    d = base.dimensions
+    a, b, c = d["base"], d["height"], d["hypotenuse"]
+    cx, cy = a / 3, b / 3
+    s_a = round(math.sqrt((b - cy) ** 2 + height**2), 2)
+    s_b = round(math.sqrt((a - cx) ** 2 + height**2), 2)
+    s_c = round(math.sqrt(cx**2 + cy**2 + height**2), 2)
+    lateral = round(0.5 * (a * s_a + b * s_b + c * s_c), 2)
+    vol = round((1/3) * base.area * height, 2)
+    sa = round(base.area + lateral, 2)
+    return GeometricResult(
+        shape="right_triangular_pyramid",
+        dimensions={"base_leg": a, "height_leg": b, "hypotenuse": c, "pyramid_height": height, "slant_a": s_a, "slant_b": s_b, "slant_c": s_c},
+        volume=vol, area=sa
+    )
+
+# ── NEW 3D SHAPES ───────────────────────────────────────────────────────────
+
+def generate_cylinder(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    radius = rng.randint(1, level_config.level * 4)
+    height = rng.randint(1, level_config.level * 6)
+    return GeometricResult(
+        shape="cylinder",
+        dimensions={"radius": radius, "height": height},
+        volume=round(math.pi * radius**2 * height, 2),
+        area=round(2 * math.pi * radius * (radius + height), 2)
+    )
+
+def generate_cone(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    radius = rng.randint(1, level_config.level * 4)
+    height = rng.randint(1, level_config.level * 6)
+    slant = round(math.sqrt(radius**2 + height**2), 2)
+    return GeometricResult(
+        shape="cone",
+        dimensions={"radius": radius, "height": height, "slant": slant},
+        volume=round((1/3) * math.pi * radius**2 * height, 2),
+        area=round(math.pi * radius * (radius + slant), 2)
+    )
+
+def generate_hemisphere(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    radius = rng.randint(1, level_config.level * 4)
+    return GeometricResult(
+        shape="hemisphere",
+        dimensions={"radius": radius},
+        volume=round((2/3) * math.pi * radius**3, 2),
+        area=round(3 * math.pi * radius**2, 2)
+    )
+
+def generate_frustum(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    bottom_radius = rng.randint(2, level_config.level * 4)
+    top_radius = rng.randint(1, bottom_radius - 1)
+    height = rng.randint(1, level_config.level * 5)
+    slant = round(math.sqrt((bottom_radius - top_radius)**2 + height**2), 2)
+    return GeometricResult(
+        shape="frustum",
+        dimensions={"bottom_radius": bottom_radius, "top_radius": top_radius, "height": height, "slant": slant},
+        volume=round((1/3) * math.pi * height * (bottom_radius**2 + bottom_radius * top_radius + top_radius**2), 2),
+        area=round(math.pi * (bottom_radius + top_radius) * slant + math.pi * bottom_radius**2 + math.pi * top_radius**2, 2)
+    )
+
+def generate_torus(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    major_radius = rng.randint(2, level_config.level * 5)
+    max_minor = max(1, major_radius - 1)
+    minor_radius = rng.randint(1, min(max_minor, level_config.level * 3))
+    return GeometricResult(
+        shape="torus",
+        dimensions={"major_radius": major_radius, "minor_radius": minor_radius},
+        volume=round(2 * math.pi**2 * major_radius * minor_radius**2, 2),
+        area=round(4 * math.pi**2 * major_radius * minor_radius, 2)
+    )
+
+def generate_ellipsoid(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    a = rng.randint(2, level_config.level * 4)
+    b = rng.randint(1, a)
+    c = rng.randint(1, b)
+    p = 1.6075
+    area = 4 * math.pi * ((a**p * b**p + a**p * c**p + b**p * c**p) / 3) ** (1/p)
+    return GeometricResult(
+        shape="ellipsoid",
+        dimensions={"semi_axis_a": a, "semi_axis_b": b, "semi_axis_c": c},
+        volume=round((4/3) * math.pi * a * b * c, 2),
+        area=round(area, 2)
+    )
+
+def generate_tetrahedron(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    side = rng.randint(1, level_config.level * 5)
+    return GeometricResult(
+        shape="tetrahedron",
+        dimensions={"side": side},
+        volume=round(side**3 / (6 * math.sqrt(2)), 2),
+        area=round(math.sqrt(3) * side**2, 2)
+    )
+
+def generate_hollow_sphere(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    outer_radius = rng.randint(2, level_config.level * 5)
+    inner_radius = rng.randint(1, outer_radius - 1)
+    return GeometricResult(
+        shape="hollow_sphere",
+        dimensions={"outer_radius": outer_radius, "inner_radius": inner_radius, "thickness": outer_radius - inner_radius},
+        volume=round((4/3) * math.pi * (outer_radius**3 - inner_radius**3), 2),
+        area=round(4 * math.pi * (outer_radius**2 + inner_radius**2), 2)
+    )
+
+def generate_octahedron(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    side = rng.randint(1, level_config.level * 5)
+    return GeometricResult(
+        shape="octahedron",
+        dimensions={"side": side},
+        volume=round(math.sqrt(2) / 3 * side**3, 2),
+        area=round(2 * math.sqrt(3) * side**2, 2)
+    )
+
+def generate_dodecahedron(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    side = rng.randint(1, level_config.level * 3)
+    volume = (15 + 7 * math.sqrt(5)) / 4 * side**3
+    area = 3 * math.sqrt(25 + 10 * math.sqrt(5)) * side**2
+    return GeometricResult(
+        shape="dodecahedron",
+        dimensions={"side": side},
+        volume=round(volume, 2),
+        area=round(area, 2)
+    )
+
+def generate_icosahedron(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
+    side = rng.randint(1, level_config.level * 4)
+    volume = 5 * (3 + math.sqrt(5)) / 12 * side**3
+    area = 5 * math.sqrt(3) * side**2
+    return GeometricResult(
+        shape="icosahedron",
+        dimensions={"side": side},
+        volume=round(volume, 2),
+        area=round(area, 2)
+    )
+
 # ── 2D SHAPES ───────────────────────────────────────────────────────────────
 
 def generate_square(rng: random.Random, level_config: LevelConfig) -> GeometricResult:
