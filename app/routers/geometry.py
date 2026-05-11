@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
-from app.services.geometry_service import generate_geometry_question
+from app.services.geometry_service import generate_geometry_question, get_available_shapes
 
 router = APIRouter(
     prefix="/geometry",
@@ -15,6 +15,13 @@ class GeometryRequest(BaseModel):
     sides: Optional[int] = None # 3, 4, 5, 6, 7, 8
     dimension: str = "3D" # 2D atau 3D
     with_story: bool = False
+
+@router.get("/shapes")
+async def list_shapes():
+    """
+    Endpoint untuk mendapatkan daftar semua jenis bangun yang bisa dihasilkan.
+    """
+    return get_available_shapes()
 
 @router.post("/generate")
 async def generate_geometry(request: GeometryRequest):

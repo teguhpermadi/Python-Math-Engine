@@ -14,6 +14,15 @@ from app.core.geometry.mesh import (
 )
 from app.services.ai_storyteller import ai_storyteller
 
+def get_available_shapes():
+    """
+    Mengembalikan daftar semua bangun datar (2D) dan bangun ruang (3D) yang didukung.
+    """
+    return {
+        "2D": ["square", "rectangle", "triangle", "circle"],
+        "3D": ["cube", "block", "pyramid", "prism", "sphere"]
+    }
+
 async def generate_geometry_question(
     seed: int, 
     level: int, 
