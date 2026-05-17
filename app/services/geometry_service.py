@@ -38,6 +38,13 @@ from app.core.geometry.mesh import (
 )
 from app.services.ai_storyteller import ai_storyteller
 
+from app.core.geometry.voxel import (
+    create_voxel_group_data,
+    generate_voxel_group_mesh,
+    generate_voxel_group_options
+)
+
+
 def get_available_shapes():
     """
     Mengembalikan daftar semua bangun datar (2D) dan bangun ruang (3D) yang didukung.
@@ -61,6 +68,7 @@ def get_available_shapes():
             "parallelogram_prism", "trapezoidal_prism",
             "rhombus_prism", "kite_prism",
             "rectangular_pyramid", "right_triangular_pyramid",
+            "voxel_group"
         ]
     }
 
@@ -90,7 +98,7 @@ async def generate_geometry_question(
             shapes += ["acute_triangle", "obtuse_triangle"]
     else:
         shapes = ["cube", "block"]
-        if level >= 3: shapes += ["pyramid", "prism", "cylinder", "cone", "tetrahedron", "right_triangular_prism", "parallelogram_prism", "rectangular_pyramid", "right_triangular_pyramid"]
+        if level >= 3: shapes += ["pyramid", "prism", "cylinder", "cone", "tetrahedron", "right_triangular_prism", "parallelogram_prism", "rectangular_pyramid", "right_triangular_pyramid", "voxel_group"]
         if level >= 4: shapes += ["hemisphere", "frustum", "octahedron", "isosceles_triangular_prism", "trapezoidal_prism", "rhombus_prism", "kite_prism"]
         if level >= 5: shapes += ["sphere", "torus", "ellipsoid", "dodecahedron", "icosahedron", "hollow_sphere"]
     
@@ -386,6 +394,75 @@ async def generate_geometry_question(
         mesh = _pyramidize_mesh(generate_right_triangle_2d_mesh(d["base_leg"], d["height_leg"])["vertices"], d["pyramid_height"])
         expression = f"Hitung volume limas segitiga siku-siku (a={d['base_leg']}, b={d['height_leg']}, t={d['pyramid_height']})"
         correct_answer = f"{res.volume:.2f}"
+
+    elif target_shape == "voxel_group":
+        if level == 1:
+            jml_kubus = rng.randint(4, 6)
+        elif level == 2:
+            jml_kubus = rng.randint(6, 8)
+        elif level == 3:
+            jml_kubus = rng.randint(8, 10)
+        elif level == 4:
+            jml_kubus = rng.randint(10, 14)
+        else:
+            jml_kubus = rng.randint(14, 20)
+
+        warna_warni = True
+
+        posisi_asli, colors_asli = create_voxel_group_data(rng, jml_kubus, warna_warni)
+        jml_asli = len(posisi_asli)
+
+        min_x = min(p[0] for p in posisi_asli)
+        max_x = max(p[0] for p in posisi_asli)
+        min_y = min(p[1] for p in posisi_asli)
+        max_y = max(p[1] for p in posisi_asli)
+        min_z = min(p[2] for p in posisi_asli)
+        max_z = max(p[2] for p in posisi_asli)
+        mid_x = (min_x + max_x) / 2.0 + 0.5
+        mid_y = (min_y + max_y) / 2.0 + 0.5
+        mid_z = (min_z + max_z) / 2.0 + 0.5
+
+        voxels_list = []
+        for p in posisi_asli:
+            vx, vy, vz = p
+            voxels_list.append({
+                "position": [vx, vy, vz],
+                "centered_position": [vx - mid_x + 0.5, vy - mid_y + 0.5, vz - mid_z + 0.5],
+                "color": colors_asli[p]
+            })
+
+        mesh = generate_voxel_group_mesh(posisi_asli)
+
+        options, correct_label = generate_voxel_group_options(rng, posisi_asli, colors_asli, jml_asli, warna_warni)
+        target_view = rng.choice(['Depan', 'Kanan', 'Kiri', 'Atas', 'Belakang'])
+
+        expression = "Berapa banyak kubus satuan yang menyusun bangun ruang berikut?"
+        correct_answer = str(jml_asli)
+
+        res_dict = {
+            "meta": {"seed": seed, "level": level, "shape": target_shape, "dimension": dimension.upper()},
+            "data": {
+                "expression": expression,
+                "story": None,
+                "mesh": mesh,
+                "dimensions": {"cubes_count": jml_asli},
+                "perimeter": None,
+                "angles": None,
+                "area": None,
+                "volume": float(jml_asli),
+                "correct_answer": correct_answer,
+                "voxels": voxels_list,
+                "multiview_challenge": {
+                    "expression": f"Opsi manakah yang menunjukkan sudut pandang '{target_view}' dari susunan kubus berikut?",
+                    "target_view": target_view,
+                    "correct_label": correct_label,
+                    "options": options
+                }
+            }
+        }
+        if with_story:
+            res_dict["data"]["story"] = await ai_storyteller.generate_story(expression, correct_answer, "geometry", "sekolah", rng)
+        return res_dict
 
     else: # icosahedron
         res = generate_icosahedron(rng, config)

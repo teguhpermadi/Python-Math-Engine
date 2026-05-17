@@ -71,3 +71,39 @@ def test_geometry_nets_generate_invalid():
     assert isinstance(data["error_reason"], str)
     assert len(data["faces"]) > 0
 
+def test_geometry_voxel_group():
+    # 1. Test generate voxel group question via API
+    response = client.post("/api/v1/geometry/generate", json={
+        "seed": 42, "level": 3, "shape": "voxel_group"
+    })
+    assert response.status_code == 200
+    data = response.json()
+    
+    # 2. Check meta data
+    assert data["meta"]["shape"] == "voxel_group"
+    assert data["meta"]["dimension"] == "3D"
+    
+    # 3. Check data properties
+    assert "expression" in data["data"]
+    assert "mesh" in data["data"]
+    assert len(data["data"]["mesh"]["vertices"]) > 0
+    assert len(data["data"]["mesh"]["faces"]) > 0
+    
+    # 4. Check voxel specific keys
+    assert "voxels" in data["data"]
+    assert len(data["data"]["voxels"]) > 0
+    assert "multiview_challenge" in data["data"]
+    
+    # 5. Check multiview challenge data
+    challenge = data["data"]["multiview_challenge"]
+    assert "expression" in challenge
+    assert challenge["target_view"] in ['Depan', 'Kanan', 'Kiri', 'Atas', 'Belakang']
+    assert challenge["correct_label"] in ["A", "B", "C", "D"]
+    assert len(challenge["options"]) == 4
+    
+    # 6. Check reproducibility of seed
+    response2 = client.post("/api/v1/geometry/generate", json={
+        "seed": 42, "level": 3, "shape": "voxel_group"
+    })
+    assert response.json() == response2.json()
+
