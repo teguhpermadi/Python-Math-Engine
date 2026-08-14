@@ -37,6 +37,7 @@ from app.core.geometry.mesh import (
     generate_kite_mesh, generate_rhombus_mesh, generate_ellipse_mesh,
 )
 from app.services.ai_storyteller import ai_storyteller
+from app.services.distractor import generate_distractors
 
 from app.core.geometry.voxel import (
     create_voxel_group_data,
@@ -78,7 +79,9 @@ async def generate_geometry_question(
     shape_type: str | None = None, 
     with_story: bool = False,
     sides: int | None = None,
-    dimension: str = "3D"
+    dimension: str = "3D",
+    with_distractors: bool = True,
+    distractor_count: int = 3,
 ):
     ctx = SeedContext(seed=seed, operation="geometry", level=level, number_type="natural")
     rng = SeedManager(ctx).rng
@@ -439,10 +442,24 @@ async def generate_geometry_question(
         expression = "Berapa banyak kubus satuan yang menyusun bangun ruang berikut?"
         correct_answer = str(jml_asli)
 
+        # Distractors
+        answer_choices = [correct_answer]
+        if with_distractors:
+            dists = generate_distractors(correct_answer, target_shape, "natural", distractor_count, rng, "geometry")
+            answer_choices.extend(dists)
+        rng.shuffle(answer_choices)
+
         res_dict = {
-            "meta": {"seed": seed, "level": level, "shape": target_shape, "dimension": dimension.upper()},
+            "status": "success",
+            "meta": {"seed": seed, "level": level, "operation": "geometry", "shape": target_shape, "dimension": dimension.upper()},
+            "context": {"story": None, "theme": "general"},
             "data": {
                 "expression": expression,
+                "expression_latex": expression,
+                "answer_choices": answer_choices,
+                "answer_choices_latex": answer_choices,
+                "correct_answer": correct_answer,
+                "correct_answer_latex": correct_answer,
                 "story": None,
                 "mesh": mesh,
                 "dimensions": {"cubes_count": jml_asli},
@@ -450,7 +467,6 @@ async def generate_geometry_question(
                 "angles": None,
                 "area": None,
                 "volume": float(jml_asli),
-                "correct_answer": correct_answer,
                 "voxels": voxels_list,
                 "multiview_challenge": {
                     "expression": f"Opsi manakah yang menunjukkan sudut pandang '{target_view}' dari susunan kubus berikut?",
@@ -461,7 +477,8 @@ async def generate_geometry_question(
             }
         }
         if with_story:
-            res_dict["data"]["story"] = await ai_storyteller.generate_story(expression, correct_answer, "geometry", "sekolah", rng)
+            res_dict["context"]["story"] = await ai_storyteller.generate_story(expression, correct_answer, "geometry", "sekolah", rng)
+            res_dict["data"]["story"] = res_dict["context"]["story"]
         return res_dict
 
     else: # icosahedron
@@ -476,10 +493,24 @@ async def generate_geometry_question(
     if with_story:
         story = await ai_storyteller.generate_story(expression, str(correct_answer), "geometry", "sekolah", rng)
 
+    # 4. Distractors
+    answer_choices = [str(correct_answer)]
+    if with_distractors:
+        dists = generate_distractors(str(correct_answer), target_shape, "natural", distractor_count, rng, "geometry")
+        answer_choices.extend(dists)
+    rng.shuffle(answer_choices)
+
     return {
-        "meta": {"seed": seed, "level": level, "shape": target_shape, "dimension": dimension.upper()},
+        "status": "success",
+        "meta": {"seed": seed, "level": level, "operation": "geometry", "shape": target_shape, "dimension": dimension.upper()},
+        "context": {"story": story, "theme": "general"},
         "data": {
             "expression": expression,
+            "expression_latex": expression,
+            "answer_choices": answer_choices,
+            "answer_choices_latex": answer_choices,
+            "correct_answer": str(correct_answer),
+            "correct_answer_latex": str(correct_answer),
             "story": story,
             "mesh": mesh,
             "dimensions": res.dimensions,
@@ -487,6 +518,5 @@ async def generate_geometry_question(
             "angles": res.angles,
             "area": res.area,
             "volume": res.volume,
-            "correct_answer": str(correct_answer)
         }
     }

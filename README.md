@@ -27,7 +27,7 @@ Deterministic mathematical microservice for Computer-Based Testing (CBT) systems
 
 Start the server:
 ```bash
-uvicorn app.main:app --reload
+fastapi dev app/main.py
 ```
 
 Access API Documentation at `http://localhost:8000/docs`.
@@ -43,14 +43,6 @@ Endpoint: `POST /api/v1/exam/generate`
     {"domain": "algebra", "level": 3}
   ]
 }
-```
-
-## Deployment
-
-Build and run using Docker:
-```bash
-docker build -t math-engine .
-docker run -p 8000:8000 math-engine
 ```
 
 ## Testing

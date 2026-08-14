@@ -16,6 +16,8 @@ class GeometryRequest(BaseModel):
     sides: Optional[int] = None # 3, 4, 5, 6, 7, 8
     dimension: str = "3D" # 2D atau 3D
     with_story: bool = False
+    with_distractors: bool = True
+    distractor_count: int = 3
 
 class NetRequest(BaseModel):
     shape: str
@@ -38,7 +40,9 @@ async def generate_geometry(request: GeometryRequest):
             request.shape, 
             request.with_story,
             request.sides,
-            request.dimension
+            request.dimension,
+            request.with_distractors,
+            request.distractor_count,
         )
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
