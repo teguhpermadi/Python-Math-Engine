@@ -16,7 +16,21 @@ class SeedManager:
     Setiap instance bersifat independent.
     """
 
-    def __init__(self, context: SeedContext):
+    def __init__(
+        self,
+        context: SeedContext | int,
+        operation: str = "addition",
+        level: int = 1,
+        number_type: str = "natural",
+    ):
+        if isinstance(context, int):
+            # Backward compatibility: SeedManager(seed_int) masih didukung.
+            context = SeedContext(
+                seed=context,
+                operation=operation,
+                level=level,
+                number_type=number_type,
+            )
         self._context = context
         self._rng = random.Random()
         self._rng.seed(self._make_deterministic_seed(context))
@@ -24,6 +38,10 @@ class SeedManager:
     @property
     def rng(self) -> random.Random:
         """Instance RNG yang sudah di-seed. Gunakan ini untuk semua operasi random."""
+        return self._rng
+
+    def get_rng(self) -> random.Random:
+        """Alias kompatibilitas untuk kode lama yang memanggil get_rng()."""
         return self._rng
 
     @staticmethod

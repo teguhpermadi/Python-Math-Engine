@@ -39,6 +39,7 @@ def generate_comparison(
         "expression": f"{op1_str} ___ {op2_str}",
         "expression_latex": expression_latex,
         "result": result,
+        "result_type": "symbol",
         "steps": [f"Bandingkan {op1_str} dengan {op2_str}", f"Hasil: {op1_str} {result} {op2_str}"]
     }
 
@@ -75,6 +76,10 @@ def generate_ordering(
         "order_type": order,
         "expression": ", ".join(num_strs),
         "expression_latex": expression_latex,
-        "result": result_strs,
+        # Result berupa string (bukan list) agar aman untuk response schema
+        # (correct_answer: str) dan to_latex(). Urutan tersimpan di "ordered".
+        "result": ", ".join(result_strs),
+        "ordered": result_strs,
+        "result_type": "sequence",
         "steps": [f"Urutkan {order}: " + ", ".join(result_strs)]
     }

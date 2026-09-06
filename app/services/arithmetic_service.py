@@ -47,7 +47,8 @@ async def generate_arithmetic_question(request: ArithmeticRequest) -> Arithmetic
     # 3. Validate NumberType for Level
     if request.number_type not in level_config.allowed_number_types:
         # Special case for some operations that might be allowed regardless
-        if request.operation not in ["gcd", "lcm", "factorization"]:
+        # (harus konsisten dengan model_validator di ArithmeticRequest)
+        if request.operation not in ["gcd", "lcm", "factorization", "modulo"]:
              raise InvalidNumberTypeForLevelError(
                  f"Tipe {request.number_type} tidak diizinkan di Level {request.level}"
              )

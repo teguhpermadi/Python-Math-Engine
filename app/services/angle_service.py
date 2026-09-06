@@ -24,7 +24,15 @@ async def generate_angle_question(
     
     types = ["complementary", "supplementary"]
     if level >= 4: types.append("parallel_lines")
-    
+
+    # Validasi eksplisit: tipe tidak dikenal TIDAK boleh diam-diam jatuh ke
+    # cabang else (parallel_lines). Klien yang salah nama field harus
+    # menerima 400, bukan soal dengan tipe yang salah.
+    if angle_type is not None and angle_type not in types:
+        raise ValueError(
+            f"Tipe sudut '{angle_type}' tidak tersedia di Level {level}. Tersedia: {types}"
+        )
+
     target_type = angle_type or rng.choice(types)
     
     drawing_data = None

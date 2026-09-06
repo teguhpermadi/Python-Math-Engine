@@ -32,6 +32,7 @@ def generate_gcd_problem(
         "operation": "gcd",
         "expression": f"FPB dari {nums[0]} dan {nums[1]}",
         "result": str(gcd_target),
+        "result_type": "natural",
         "steps": [
             f"Faktor dari {nums[0]} dan {nums[1]}",
             f"FPB = {gcd_target}"
@@ -60,6 +61,7 @@ def generate_lcm_problem(
         "operation": "lcm",
         "expression": f"KPK dari {nums[0]} dan {nums[1]}",
         "result": str(res),
+        "result_type": "natural",
         "steps": [
             f"Kelipatan dari {nums[0]} dan {nums[1]}",
             f"KPK = {res}"
@@ -91,5 +93,6 @@ def generate_factorization_problem(
         "operation": "factorization",
         "expression": f"Faktorisasi prima dari {num}",
         "result": result,
+        "result_type": "expression",
         "steps": [f"Pohon faktor dari {num} menghasilkan {result}"]
     }

@@ -46,6 +46,13 @@ from app.core.geometry.voxel import (
 )
 
 
+# Alias nama shape dari klien lama → nama shape internal engine.
+SHAPE_ALIASES = {
+    "cuboid": "block",             # config Laravel memakai 'cuboid'
+    "rectangular_prism": "block",  # opsi 'Balok' di UI lunar-pinwheel
+}
+
+
 def get_available_shapes():
     """
     Mengembalikan daftar semua bangun datar (2D) dan bangun ruang (3D) yang didukung.
@@ -106,7 +113,18 @@ async def generate_geometry_question(
         if level >= 5: shapes += ["sphere", "torus", "ellipsoid", "dodecahedron", "icosahedron", "hollow_sphere"]
     
     if shape_type:
+        # Normalisasi alias lama (mis. cuboid/rectangular_prism → block)
+        shape_type = SHAPE_ALIASES.get(shape_type, shape_type)
+
+        # Kontrak dimension: shape lebih spesifik daripada dimension, jadi
+        # dimension di-infer dari registry jika keduanya tidak cocok.
+        # Ini mencegah kegagalan 2D ketika klien lama mengirim default 3D.
         available = get_available_shapes()
+        if shape_type in available["2D"] and shape_type not in available["3D"]:
+            dimension = "2D"
+        elif shape_type in available["3D"] and shape_type not in available["2D"]:
+            dimension = "3D"
+
         dim_key = "2D" if dimension.upper() == "2D" else "3D"
         if shape_type not in available[dim_key]:
             raise ValueError(f"Shape '{shape_type}' is not available for {dim_key} dimension")
